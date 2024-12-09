@@ -6,6 +6,9 @@ use teloxide::{prelude::*, utils::command::BotCommands};
     description = "These commands are supported:"
 )]
 enum Command {
+    #[command(description = "List all available commands")]
+    Help,
+
     #[command(description = "Display current objects")]
     CurrentState,
 
@@ -34,6 +37,10 @@ async fn main() {
 
 async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
     match cmd {
+        Command::Help => {
+            bot.send_message(msg.chat.id, Command::descriptions().to_string())
+                .await?
+        }
         Command::CurrentState => {
             bot.send_message(msg.chat.id, String::from("current-state"))
                 .await?
