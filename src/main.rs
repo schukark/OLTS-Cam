@@ -1,3 +1,4 @@
+use dotenv::dotenv;
 use teloxide::{prelude::*, utils::command::BotCommands};
 
 #[derive(Clone, BotCommands)]
@@ -27,6 +28,8 @@ enum Command {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
     pretty_env_logger::init();
     log::info!("Starting throw dice bot...");
 
