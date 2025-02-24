@@ -96,13 +96,10 @@ name = "camera_detection_bot"
 version = "0.1.0"
 dependencies = [
  "dotenv",
- "futures",
  "log",
  "pretty_env_logger",
- "serde_json",
  "teloxide",
  "tokio",
- "tokio-util",
 ]
 
 [[package]]
