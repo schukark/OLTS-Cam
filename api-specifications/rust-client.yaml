@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+    title: OLTS-Cam API
+    version: 0.0.1
+
+paths:
+    /settings:
+        post:
+            tags:
+                - settings
+            operationId: changeSettings
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/settings"
+            responses:
+                "200":
+                    description: Settings changed successfully
+                "400":
+                    description: No such settings receiver
+                "401":
+                    description: No such setting found
+    /object/{name}:
+        parameters:
+            - name: name
+              in: path
+              required: True
+              schema:
+                  type: string
+        get:
+            tags:
+                - picture
+            operationId: getObjects
+            responses:
+                "200":
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/object-photo"
+                "400":
+                    description: Image size too big
+    /settings/{receiver}:
+        parameters:
+            - name: receiver
+              in: path
+              required: True
+              schema:
+                  type: string
+                  enum:
+                      - camera
+                      - db
+                      - fs
+        get:
+            tags:
+                - settings
+            operationId: getSettings
+            responses:
+                "200":
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/settings"
+
+components:
+    schemas:
+        settings:
+            type: object
+            properties:
+                receiver:
+                    type: string
+                    description: part of the system, which receives the updates
+                    enum:
+                        - camera
+                        - db
+                        - fs
+                    example: camera
+                settings:
+                    type: array
+                    description: array of settings to be changed
+                    items:
+                        type: object
+                        properties:
+                            key:
+                                type: string
+                                description: the name of the setting to update
+                                example: FPS
+                            value:
+                                type: string
+                                description: the value of the setting to update
+                                example: 30
+            required:
+                - receiver
+                - settings
+        object-photo:
+            type: object
+            properties:
+                height:
+                    type: integer
+                    description: image height
+                    example: 224
+                width:
+                    type: integer
+                    description: image width
+                    example: 224
+                image:
+                    type: string
+                    description: base64 encoded image
+                    example: aboba
+            required:
+                - height
+                - width
+                - image
