@@ -1,88 +1,18 @@
 use dotenv::dotenv;
-use teloxide::{prelude::*, utils::command::BotCommands};
+use futures::future::join_all;
 
-#[derive(Clone, BotCommands)]
-#[command(
-    rename_rule = "lowercase",
-    description = "These commands are supported:"
-)]
-enum Command {
-    #[command(description = "List all available commands")]
-    Help,
-
-    #[command(description = "Display current objects")]
-    CurrentState,
-
-    #[command(description = "Search for object")]
-    WhereIs(String),
-
-    #[command(description = "Change settings to the camera")]
-    SettingsCamera(String),
-
-    #[command(description = "Change settings to the filesystem")]
-    SettingsFilesystem(String),
-
-    #[command(description = "Change settings to the CV model")]
-    SettingsCVModel(String),
-}
+mod bot;
+mod listenner;
+mod requests;
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
 
     pretty_env_logger::init();
-    log::info!("Starting throw dice bot...");
 
-    let bot = Bot::from_env();
+    let bot_task = tokio::spawn(bot::run_bot());
+    let listenner_task = tokio::spawn(listenner::listen_json());
 
-    Command::repl(bot, answer).await;
-}
-
-async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
-    match cmd {
-        Command::Help => {
-            bot.send_message(msg.chat.id, Command::descriptions().to_string())
-                .await?
-        }
-        Command::CurrentState => {
-            bot.send_message(msg.chat.id, String::from("current-state"))
-                .await?
-        }
-        Command::WhereIs(object_name) => {
-            bot.send_message(msg.chat.id, object_name.to_string())
-                .await?
-        }
-        Command::SettingsCamera(options) => {
-            bot.send_message(
-                msg.chat.id,
-                format!(
-                    "The settings options for the camera are: {}",
-                    options.split_whitespace().collect::<Vec<_>>().join("; ")
-                ),
-            )
-            .await?
-        }
-        Command::SettingsFilesystem(options) => {
-            bot.send_message(
-                msg.chat.id,
-                format!(
-                    "The settings options for the filesystem are: {}",
-                    options.split_whitespace().collect::<Vec<_>>().join("; ")
-                ),
-            )
-            .await?
-        }
-        Command::SettingsCVModel(options) => {
-            bot.send_message(
-                msg.chat.id,
-                format!(
-                    "The settings options for the cvmodel are: {}",
-                    options.split_whitespace().collect::<Vec<_>>().join("; ")
-                ),
-            )
-            .await?
-        }
-    };
-
-    Ok(())
+    join_all(vec![bot_task, listenner_task]).await;
 }
