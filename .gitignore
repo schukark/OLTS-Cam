@@ -2,3 +2,4 @@
 .env
 *.json
 *.py
+.42c
