@@ -1,0 +1,12 @@
+{
+    "settings": [
+        {
+            "receiver": "camera",
+            "settings": [
+                {
+                    "FPS": "30"
+                }
+            ]
+        }
+    ]
+}
