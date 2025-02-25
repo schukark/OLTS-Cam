@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 from models import Settings, ObjectPhoto, Receiver
 from pydantic_core import from_json
+import uvicorn
+
+app = FastAPI()
 
 if __name__ == "__main__":
-    app = FastAPI()
+
+    uvicorn.run(app, host="127.0.0.1", port=19841)
 
 
 @app.get("/settings/{rcv}")
