@@ -13,6 +13,32 @@ pub struct ResponseData {
     message: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct SettingsInner {
+    key: String,
+    value: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Receiver {
+    Camera,
+    Db,
+    Fs,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Settings {
+    receiver: Receiver,
+    settings: Vec<SettingsInner>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObjectPhoto {
+    height: u32,
+    width: u32,
+    image: String
+}
+
 pub async fn handle_request(data: RequestData) -> Result<impl warp::Reply, Infallible> {
     println!("Received JSON: {:?}", data);
 
