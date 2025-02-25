@@ -1,18 +1,9 @@
-// use base64::{engine::general_purpose::STANDARD, Engine as _};
+use std::fmt::Display;
+
+use crate::{ADDRESS, CLIENT, PORT};
+use reqwest::Error;
+
 use serde::{Deserialize, Serialize};
-use std::convert::Infallible;
-
-#[derive(Debug, Deserialize)]
-pub struct RequestData {
-    key: String,
-    // Add more fields as required
-}
-
-#[derive(Debug, Serialize)]
-pub struct ResponseData {
-    message: String,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 struct SettingsInner {
     key: String,
@@ -26,6 +17,18 @@ pub enum Receiver {
     Fs,
 }
 
+impl Display for Receiver {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = match self {
+            Receiver::Camera => "camera",
+            Receiver::Db => "db",
+            Receiver::Fs => "fs",
+        };
+
+        write!(f, "{}", name)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
     receiver: Receiver,
@@ -36,15 +39,32 @@ pub struct Settings {
 pub struct ObjectPhoto {
     height: u32,
     width: u32,
-    image: String
+    image: String,
 }
 
-pub async fn handle_request(data: RequestData) -> Result<impl warp::Reply, Infallible> {
-    println!("Received JSON: {:?}", data);
+pub async fn change_settings(settings: Settings) -> Result<(), Error> {
+    let request_url = format!("http://{ADDRESS}:{PORT}/settings",);
+    CLIENT.post(request_url).json(&settings).send().await?;
 
-    let response = ResponseData {
-        message: format!("Received key: {}", data.key),
-    };
+    Ok(())
+}
 
-    Ok(warp::reply::json(&response))
+pub async fn get_settings(receiver: Receiver) -> Result<Settings, Error> {
+    let request_url = format!("http://{ADDRESS}:{PORT}/settings/{receiver}");
+
+    let response = CLIENT.get(request_url).send().await?;
+
+    let settings = response.json().await?;
+
+    Ok(settings)
+}
+
+pub async fn get_object(name: String) -> Result<ObjectPhoto, Error> {
+    let request_url = format!("http://{ADDRESS}:{PORT}/object/{name}");
+
+    let response = CLIENT.get(request_url).send().await?;
+
+    let object = response.json().await?;
+
+    Ok(object)
 }
