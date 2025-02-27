@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
     title: OLTS-Cam API
-    version: 0.0.1
+    version: 0.1.0
 
 paths:
     /settings:
@@ -21,6 +21,21 @@ paths:
                     description: No such settings receiver
                 "401":
                     description: No such setting found
+    /objects:
+        get:
+            tags:
+                - picture
+            operationId: getObjects
+            responses:
+                "200":
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/object-photo"
+
     /object/{name}:
         parameters:
             - name: name
@@ -31,7 +46,7 @@ paths:
         get:
             tags:
                 - picture
-            operationId: getObjects
+            operationId: getObject
             responses:
                 "200":
                     description: Successful operation
