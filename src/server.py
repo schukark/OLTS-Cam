@@ -5,11 +5,6 @@ import uvicorn
 
 app = FastAPI()
 
-if __name__ == "__main__":
-
-    uvicorn.run(app, host="127.0.0.1", port=19841)
-
-
 @app.get("/settings/{rcv}")
 async def get_settings(rcv: Receiver):
     with open("settings.json", "r") as settings_file:
@@ -37,3 +32,5 @@ async def change_settings(new_settings: Settings):
 
     with open("settings.json", "w") as settings_file:
         settings_file.write(Settings(**cur_settings).model_dump_json)
+
+uvicorn.run(app, host="127.0.0.1", port=19841)
