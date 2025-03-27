@@ -2,6 +2,7 @@ use dotenv::dotenv;
 use futures::future::join_all;
 
 mod bot;
+mod models;
 mod requests;
 
 use lazy_static::lazy_static;
