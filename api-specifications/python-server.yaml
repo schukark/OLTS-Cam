@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
     title: OLTS-Cam API
-    version: 0.0.1
+    version: 0.0.2
 
 paths:
     /settings:
@@ -17,10 +17,10 @@ paths:
             responses:
                 "200":
                     description: Settings changed successfully
-                "422":
-                    description: No such settings receiver
                 "401":
                     description: No such setting found
+                "422":
+                    description: No such settings receiver
     /object/{name}:
         parameters:
             - name: name
