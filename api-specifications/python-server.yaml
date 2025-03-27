@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
     title: OLTS-Cam API
-    version: 0.1.0
+    version: 0.0.1
 
 paths:
     /settings:
@@ -17,25 +17,10 @@ paths:
             responses:
                 "200":
                     description: Settings changed successfully
-                "400":
+                "422":
                     description: No such settings receiver
                 "401":
                     description: No such setting found
-    /objects:
-        get:
-            tags:
-                - picture
-            operationId: getObjects
-            responses:
-                "200":
-                    description: Successful operation
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/object-photo"
-
     /object/{name}:
         parameters:
             - name: name
@@ -46,7 +31,7 @@ paths:
         get:
             tags:
                 - picture
-            operationId: getObject
+            operationId: getObjects
             responses:
                 "200":
                     description: Successful operation
@@ -54,8 +39,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/object-photo"
-                "400":
-                    description: Image size too big
+                "401":
+                    description: No such object present
     /settings/{receiver}:
         parameters:
             - name: receiver
@@ -78,6 +63,8 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/settings"
+                "422":
+                    description: No such settings receiver
 
 components:
     schemas:
