@@ -37,3 +37,9 @@ pub struct ObjectPhoto {
     width: u32,
     image: String,
 }
+
+impl ObjectPhoto {
+    pub fn get_image(&self) -> &str {
+        &self.image
+    }
+}

@@ -4,8 +4,15 @@ use std::sync::Arc;
 use teloxide::{
     adaptors::throttle::{Limits, Throttle},
     prelude::*,
+    types::InputFile,
     utils::command::BotCommands,
 };
+
+use base64::{prelude::*, DecodeError};
+
+fn convert_to_image(base64_image: &str) -> Result<InputFile, DecodeError> {
+    Ok(InputFile::memory(BASE64_STANDARD.decode(base64_image)?))
+}
 
 #[derive(Clone, BotCommands)]
 #[command(
@@ -45,12 +52,18 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
         Command::WhereIs(object_name) => {
             let object = get_object(object_name).await;
 
-            let message_text = if let Ok(_object_image) = object {
-                "Recievied a message with an item"
+            if let Ok(object_inner) = object {
+                let conversion_result = convert_to_image(&object_inner.get_image());
+                if conversion_result.is_err() {
+                    bot.send_message(msg.chat.id, "Incorrect base64 image string received")
+                        .await?
+                } else {
+                    bot.send_photo(msg.chat.id, conversion_result.expect("CAN'T FAIL"))
+                        .await?
+                }
             } else {
-                "No such item found"
-            };
-            bot.send_message(msg.chat.id, message_text).await?
+                bot.send_message(msg.chat.id, "No such item found").await?
+            }
         }
         Command::SettingsCamera(options) => {
             bot.send_message(
