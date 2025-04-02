@@ -1,3 +1,4 @@
+use crate::requests::*;
 use std::sync::Arc;
 
 use teloxide::{prelude::*, utils::command::BotCommands};
@@ -38,8 +39,14 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
                 .await?
         }
         Command::WhereIs(object_name) => {
-            bot.send_message(msg.chat.id, object_name.to_string())
-                .await?
+            let object = get_object(object_name).await;
+
+            let message_text = if let Ok(_object_image) = object {
+                "Recievied a message with an item"
+            } else {
+                "No such item found"
+            };
+            bot.send_message(msg.chat.id, message_text).await?
         }
         Command::SettingsCamera(options) => {
             bot.send_message(
