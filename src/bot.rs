@@ -1,7 +1,11 @@
 use crate::requests::*;
 use std::sync::Arc;
 
-use teloxide::{prelude::*, utils::command::BotCommands};
+use teloxide::{
+    adaptors::throttle::{Limits, Throttle},
+    prelude::*,
+    utils::command::BotCommands,
+};
 
 #[derive(Clone, BotCommands)]
 #[command(
@@ -28,7 +32,7 @@ enum Command {
     SettingsCVModel(String),
 }
 
-async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
+async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResult<()> {
     match cmd {
         Command::Help => {
             bot.send_message(msg.chat.id, Command::descriptions().to_string())
@@ -86,8 +90,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
 pub async fn run_bot() {
     log::info!("Starting the bot...");
 
-    let bot = Bot::from_env();
-    let bot = Arc::new(bot);
+    let bot = Bot::from_env().throttle(Limits::default());
 
     Command::repl(bot, answer).await;
 }
