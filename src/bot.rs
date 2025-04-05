@@ -1,3 +1,5 @@
+use crate::models;
+use crate::models::*;
 use crate::requests::*;
 use std::sync::Arc;
 
@@ -29,14 +31,11 @@ enum Command {
     #[command(description = "Search for object")]
     WhereIs(String),
 
-    #[command(description = "Change settings to the camera")]
-    SettingsCamera(String),
+    #[command(description = "Get settings")]
+    GetSettings(String),
 
-    #[command(description = "Change settings to the filesystem")]
-    SettingsFilesystem(String),
-
-    #[command(description = "Change settings to the CV model")]
-    SettingsCVModel(String),
+    #[command(description = "Change settings")]
+    ChangeSettings(String),
 }
 
 async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResult<()> {
@@ -65,35 +64,32 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
                 bot.send_message(msg.chat.id, "No such item found").await?
             }
         }
-        Command::SettingsCamera(options) => {
-            bot.send_message(
-                msg.chat.id,
-                format!(
-                    "The settings options for the camera are: {}",
-                    options.split_whitespace().collect::<Vec<_>>().join("; ")
-                ),
-            )
-            .await?
+        Command::GetSettings(receiver) => {
+            if models::RECEIVER_VALUES.contains(&receiver) {
+                let settings = get_settings(&receiver).await;
+                bot.send_message(msg.chat.id, settings).await?
+            } else {
+                bot.send_message(msg.chat.id, "Invalid receiver").await?
+            }
         }
-        Command::SettingsFilesystem(options) => {
-            bot.send_message(
-                msg.chat.id,
-                format!(
-                    "The settings options for the filesystem are: {}",
-                    options.split_whitespace().collect::<Vec<_>>().join("; ")
-                ),
-            )
-            .await?
-        }
-        Command::SettingsCVModel(options) => {
-            bot.send_message(
-                msg.chat.id,
-                format!(
-                    "The settings options for the cvmodel are: {}",
-                    options.split_whitespace().collect::<Vec<_>>().join("; ")
-                ),
-            )
-            .await?
+        Command::ChangeSettings(settings) => {
+            let settings_formatted = settings.try_into();
+
+            if settings_formatted.is_err() {
+                bot.send_message(msg.chat.id, "Incorrectly formatted settings")
+                    .await?
+            }
+
+            let settings_formatted = settings_formatted.unwrap();
+
+            let result = change_settings(settings_formatted).await;
+            if result.is_ok() {
+                bot.send_message(msg.chat.id, "Settings changed successfully")
+                    .await?
+            } else {
+                bot.send_message(msg.chat.id, "Failed to change settings")
+                    .await?
+            }
         }
     };
 
