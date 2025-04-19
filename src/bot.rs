@@ -150,6 +150,8 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
                 log::debug!("Settings formatted incorrectly");
                 bot.send_message(msg.chat.id, "Incorrectly formatted settings")
                     .await?;
+
+                return Ok(());
             }
 
             let settings_formatted = settings_formatted.unwrap();
@@ -157,7 +159,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
             let result = api.change_settings(settings_formatted).await;
             match result {
                 Ok(_) => {
-                    log::debug!("Setting changed successfully");
+                    log::debug!("Settings changed successfully");
                     bot.send_message(msg.chat.id, "Settings changed successfully")
                         .await?
                 }
@@ -500,6 +502,95 @@ mod tests {
                 bot.dispatch_and_check_last_text(
                     &serde_json::from_str::<Settings>(body).unwrap().to_string(),
                 ),
+            )
+            .await?;
+            mock.assert_async().await;
+
+            Ok(())
+        }
+    }
+
+    mod change_settings_tests {
+        use super::*;
+
+        #[tokio::test]
+        async fn test_incorrect_settings() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let api = ApiClient::new(server.address().to_string());
+            let body =
+                "{\"receiver\":\"camera\", \"settings_incorrect\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
+
+            let bot = MockBot::new(
+                MockMessageText::new().text(format!("/changesettings {}", body)),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Incorrectly formatted settings"),
+            )
+            .await?;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_fail() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let body =
+                "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
+            let mock = server.mock(|when, then| {
+                when.method(POST).path("/settings");
+                then.status(421)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text(format!("/changesettings {}", body)),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Failed to change settings"),
+            )
+            .await?;
+            mock.assert_async().await;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_correct() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let body =
+                "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
+            let mock = server.mock(|when, then| {
+                when.method(POST).path("/settings");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text(format!("/changesettings {}", body)),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Settings changed successfully"),
             )
             .await?;
             mock.assert_async().await;
