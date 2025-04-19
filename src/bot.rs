@@ -1,5 +1,5 @@
 //! This module provides all the functionality of the bot according to the task
-use crate::requests::*;
+use crate::{errors::ModelError, requests::*};
 
 use teloxide::{
     dispatching::UpdateHandler, prelude::*, types::InputFile, utils::command::BotCommands,
@@ -116,6 +116,8 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
                 log::debug!("No such receiver");
                 bot.send_message(msg.chat.id, "Incorrect receiver specified")
                     .await?;
+
+                return Ok(());
             }
 
             let rcv = rcv.unwrap();
@@ -125,12 +127,16 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
             match result {
                 Ok(settings) => {
                     log::debug!("Correctly formatted settings");
-                    bot.send_message(msg.chat.id, format!("Current settings are:\n{}", settings))
+                    bot.send_message(msg.chat.id, settings.to_string()).await?
+                }
+                Err(err) if let Some(_) = err.downcast_ref::<ModelError>() => {
+                    log::debug!("Incorrectly formatted settings");
+                    bot.send_message(msg.chat.id, "Incorrectly formatted settings")
                         .await?
                 }
                 Err(_) => {
-                    log::debug!("Incorrectly formatted settings");
-                    bot.send_message(msg.chat.id, "Couldn't get current settings")
+                    log::debug!("Error retrieving settings from an API endpoint");
+                    bot.send_message(msg.chat.id, "Error getting a response from an API server")
                         .await?
                 }
             }
@@ -285,6 +291,218 @@ mod tests {
                 .sent_messages_photo
                 .last()
                 .expect("Should be a photo sent");
+
+            Ok(())
+        }
+    }
+
+    mod where_is_tests {
+        use super::*;
+
+        #[tokio::test]
+        async fn test_erroneous_server() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/object/apple");
+                then.status(421).header("content-type", "application/json");
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text("/whereis apple"),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Error retrieving image"),
+            )
+            .await?;
+            mock.assert_async().await;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_incorrect_base64() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let body = "{\"width\":224,\"height\":224,\"image\":\"aboba\"}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/object/apple");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text("/whereis apple"),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Incorrect base64 image string received"),
+            )
+            .await?;
+            mock.assert_async().await;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_correct() -> Result<()> {
+            let image = "c2hvcnQ=";
+
+            let server = MockServer::start_async().await;
+
+            let body = "{\"width\":224,\"height\":224,\"image\":\"".to_owned() + image + "\"}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/object/apple");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text("/whereis apple"),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(Duration::from_secs(1), bot.dispatch()).await?;
+            mock.assert_async().await;
+
+            bot.get_responses()
+                .sent_messages_photo
+                .last()
+                .expect("Should be a photo sent");
+
+            Ok(())
+        }
+    }
+
+    mod get_settings_tests {
+        use crate::models::Settings;
+
+        use super::*;
+
+        #[tokio::test]
+        async fn test_incorrect_receiver() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text("/getsettings apple"),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Incorrect receiver specified"),
+            )
+            .await?;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_erroneous_server() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/settings/camera");
+                then.status(421).header("content-type", "application/json");
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text("/getsettings camera"),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Error getting a response from an API server"),
+            )
+            .await?;
+            mock.assert_async().await;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_incorrect_response() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let body =
+                "{\"receiver\":\"camera\", \"settings_incorrect\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/settings/camera");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text("/getsettings camera"),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Incorrectly formatted settings"),
+            )
+            .await?;
+            mock.assert_async().await;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_correct() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let body =
+                "{\"receiver\":\"camera\", \"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/settings/camera");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(
+                MockMessageText::new().text("/getsettings camera"),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text(
+                    &serde_json::from_str::<Settings>(body).unwrap().to_string(),
+                ),
+            )
+            .await?;
+            mock.assert_async().await;
 
             Ok(())
         }
