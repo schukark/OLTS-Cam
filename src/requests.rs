@@ -5,63 +5,78 @@ use crate::errors::RequestError;
 use crate::models::*;
 use anyhow::Result;
 
-use lazy_static::lazy_static;
 use reqwest::Client;
 
-lazy_static! {
-    static ref CLIENT: Client = Client::new();
+#[derive(Clone)]
+/// Struct that represents an http client responsible for the API endpoint requesting
+pub struct ApiClient {
+    /// Base url of the API endpoint (default: 127.0.0.1)
+    base_url: String,
+
+    /// API andpoint Client
+    client: Client,
 }
 
-/// Function that posts a 'change settings' request and reports if any error occured
-pub async fn change_settings(address_str: &str, settings: Settings) -> Result<()> {
-    let request_url = format!("http://{address_str}/settings",);
-    let response = CLIENT.post(request_url).json(&settings).send().await?;
-
-    match response.status().as_u16() {
-        200 => Ok(()),
-        400 => Err(RequestError::NoSuchReceiver.into()),
-        401 => Err(RequestError::NoSuchSetting.into()),
-        _ => Err(RequestError::UnknownError.into()),
+impl ApiClient {
+    /// Default constructor for the Api client
+    pub fn new(base_url: impl Into<String>) -> Self {
+        ApiClient {
+            base_url: base_url.into(),
+            client: Client::new(),
+        }
     }
-}
 
-/// Function that gets a current settings and reports if any error occured
-pub async fn get_settings(address_str: &str, receiver: Receiver) -> Result<Settings> {
-    let request_url = format!("http://{address_str}/settings/{receiver}");
+    /// Function that posts a 'change settings' request and reports if any error occured
+    pub async fn change_settings(&self, settings: Settings) -> Result<()> {
+        let request_url = format!("http://{}/settings", self.base_url);
+        let response = self.client.post(request_url).json(&settings).send().await?;
 
-    let response = CLIENT.get(request_url).send().await?;
-
-    match response.status().as_u16() {
-        200 => Ok(response.json().await?),
-        _ => Err(RequestError::UnknownError.into()),
+        match response.status().as_u16() {
+            200 => Ok(()),
+            400 => Err(RequestError::NoSuchReceiver.into()),
+            401 => Err(RequestError::NoSuchSetting.into()),
+            _ => Err(RequestError::UnknownError.into()),
+        }
     }
-}
 
-/// Function that gets an object by its name and reports if any error occured
-pub async fn get_object(address_str: &str, name: &str) -> Result<ObjectPhoto> {
-    let request_url = format!("http://{address_str}/object/{name}");
+    /// Function that gets a current settings and reports if any error occured
+    pub async fn get_settings(&self, receiver: Receiver) -> Result<Settings> {
+        let request_url = format!("http://{}/settings/{}", self.base_url, receiver);
 
-    let response = CLIENT.get(request_url).send().await?;
+        let response = self.client.get(request_url).send().await?;
 
-    dbg!(&response);
-
-    match response.status().as_u16() {
-        200 => Ok(response.json().await?),
-        400 => Err(RequestError::ImageTooBig.into()),
-        _ => Err(RequestError::UnknownError.into()),
+        match response.status().as_u16() {
+            200 => Ok(response.json().await?),
+            _ => Err(RequestError::UnknownError.into()),
+        }
     }
-}
 
-/// Function that requests the current state of the camera feed
-pub async fn get_objects(address_str: &str) -> Result<ObjectPhoto> {
-    let request_url = format!("http://{address_str}/objects");
+    /// Function that gets an object by its name and reports if any error occured
+    pub async fn get_object(&self, name: &str) -> Result<ObjectPhoto> {
+        let request_url = format!("http://{}/object/{}", self.base_url, name);
 
-    let response = CLIENT.get(request_url).send().await?;
+        let response = self.client.get(request_url).send().await?;
 
-    match response.status().as_u16() {
-        200 => Ok(response.json().await?),
-        400 => Err(RequestError::ImageTooBig.into()),
-        _ => Err(RequestError::UnknownError.into()),
+        dbg!(&response);
+
+        match response.status().as_u16() {
+            200 => Ok(response.json().await?),
+            400 => Err(RequestError::ImageTooBig.into()),
+            _ => Err(RequestError::UnknownError.into()),
+        }
+    }
+
+    /// Function that requests the current state of the camera feed
+    pub async fn get_objects(&self) -> Result<ObjectPhoto> {
+        let request_url = format!("http://{}/objects", self.base_url);
+
+        let response = self.client.get(request_url).send().await?;
+
+        match response.status().as_u16() {
+            200 => Ok(response.json().await?),
+            400 => Err(RequestError::ImageTooBig.into()),
+            _ => Err(RequestError::UnknownError.into()),
+        }
     }
 }
 
@@ -88,11 +103,13 @@ mod tests {
 
             let host_with_port = server.host() + ":" + &server.port().to_string();
 
+            let api_client = ApiClient::new(host_with_port);
+
             let settings = serde_json::from_str(
                 "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
             )?;
 
-            assert!(change_settings(&host_with_port, settings).await.is_err());
+            assert!(api_client.change_settings(settings).await.is_err());
             mock.assert_async().await;
 
             Ok(())
@@ -110,11 +127,13 @@ mod tests {
 
             let host_with_port = server.host() + ":" + &server.port().to_string();
 
+            let api_client = ApiClient::new(host_with_port);
+
             let settings = serde_json::from_str(
                 r#"{"receiver": "camera","settings": [{"key": "FPS","value": "30"}]}"#,
             )?;
 
-            assert!(change_settings(&host_with_port, settings).await.is_ok());
+            assert!(api_client.change_settings(settings).await.is_ok());
             mock.assert_async().await;
 
             Ok(())
@@ -141,14 +160,13 @@ mod tests {
 
             let host_with_port = server.host() + ":" + &server.port().to_string();
 
+            let api_client = ApiClient::new(host_with_port);
+
             let settings = serde_json::from_str(
                 "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
             )?;
 
-            assert_eq!(
-                get_settings(&host_with_port, Receiver::Camera).await?,
-                settings
-            );
+            assert_eq!(api_client.get_settings(Receiver::Camera).await?, settings);
             mock.assert_async().await;
 
             Ok(())
@@ -165,15 +183,19 @@ mod tests {
             let server = MockServer::start_async().await;
 
             let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
+
             let mock = server.mock(|when, then| {
                 when.method(GET).path("/object/apple");
                 then.status(400)
                     .header("content-type", "application/json")
                     .body(body);
             });
+
             let host_with_port = server.host() + ":" + &server.port().to_string();
 
-            assert!(get_object(&host_with_port, "apple").await.is_err());
+            let api_client = ApiClient::new(host_with_port);
+
+            assert!(api_client.get_object("apple").await.is_err());
             mock.assert_async().await;
 
             Ok(())
@@ -185,17 +207,21 @@ mod tests {
             let server = MockServer::start_async().await;
 
             let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
+
             let mock = server.mock(|when, then| {
                 when.method(GET).path("/object/apple");
                 then.status(200)
                     .header("content-type", "application/json")
                     .body(body);
             });
+
             let host_with_port = server.host() + ":" + &server.port().to_string();
 
             let object_photo = serde_json::from_str(body)?;
 
-            let response = get_object(&host_with_port, "apple").await;
+            let api_client = ApiClient::new(host_with_port);
+
+            let response = api_client.get_object("apple").await;
 
             assert_eq!(response?, object_photo);
             mock.assert_async().await;
@@ -223,7 +249,9 @@ mod tests {
 
             let host_with_port = server.host() + ":" + &server.port().to_string();
 
-            assert!(get_objects(&host_with_port).await.is_err());
+            let api_client = ApiClient::new(host_with_port);
+
+            assert!(api_client.get_objects().await.is_err());
             mock.assert_async().await;
 
             Ok(())
@@ -235,6 +263,7 @@ mod tests {
             let server = MockServer::start_async().await;
 
             let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
+
             let mock = server.mock(|when, then| {
                 when.method(GET).path("/objects");
                 then.status(200)
@@ -243,11 +272,12 @@ mod tests {
             });
 
             let host_with_port = server.host() + ":" + &server.port().to_string();
-            dbg!(&host_with_port);
 
             let object_photo = serde_json::from_str(body)?;
 
-            let response = get_objects(&host_with_port).await;
+            let api_client = ApiClient::new(host_with_port);
+
+            let response = api_client.get_objects().await;
 
             assert_eq!(response?, object_photo);
             mock.assert_async().await;
