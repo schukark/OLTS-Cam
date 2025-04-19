@@ -24,4 +24,8 @@ pub enum RequestError {
     /// Unknown error
     #[error("Unknown error")]
     UnknownError,
+
+    /// When the image size exceeds a limit
+    #[error("File size too big")]
+    ImageTooBig,
 }
