@@ -80,7 +80,7 @@ impl Display for Settings {
 }
 
 /// A model representing a photo with an object on it for python interoperability
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ObjectPhoto {
     /// Height of the image
     height: u32,
