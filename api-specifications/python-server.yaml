@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
     title: OLTS-Cam API
-    version: 0.1.0
+    version: 0.1.1
 
 paths:
     /settings:
@@ -35,6 +35,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/object-photo"
+                "400":
+                    description: Image size too big
 
     /object/{name}:
         parameters:
