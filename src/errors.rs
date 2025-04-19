@@ -1,4 +1,4 @@
-//! Errors module contains an error type that is used internally in the project
+//! Errors module contains errors type that are used internally in the project
 
 use thiserror::Error;
 
@@ -8,8 +8,20 @@ pub enum ModelError {
     /// Invalid reciever type (if it is not one of the preconfigured ones)
     #[error("")]
     InvalidReceiver(String),
+}
 
-    /// Parsing error when converting a string to valid settings struct
-    #[error("")]
-    InvalidSettings(String),
+/// Inner error type for requests
+#[derive(Error, Debug)]
+pub enum RequestError {
+    /// No such setting
+    #[error("No such setting")]
+    NoSuchSetting,
+
+    /// No such model
+    #[error("No such reciever")]
+    NoSuchReceiver,
+
+    /// Unknown error
+    #[error("Unknown error")]
+    UnknownError,
 }
