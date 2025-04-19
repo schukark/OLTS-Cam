@@ -1,7 +1,7 @@
 //! Requests module takes care of all connections with the python desktop client
 //! (get/post requests to the API endpoint)
 
-use crate::errors::RequestError;
+use crate::errors::{ModelError, RequestError};
 use crate::models::*;
 use anyhow::Result;
 
@@ -63,7 +63,16 @@ impl ApiClient {
         match response.status().as_u16() {
             200 => {
                 log::trace!("Response: 200");
-                Ok(response.json().await?)
+                match response.json().await {
+                    Ok(settings) => {
+                        log::trace!("Settings parsed");
+                        Ok(settings)
+                    }
+                    Err(e) => {
+                        log::trace!("Error parsing settings: {}", e);
+                        Err(ModelError::InvalidSettings.into())
+                    }
+                }
             }
             x => {
                 log::trace!("Response: {}", x);
@@ -84,10 +93,6 @@ impl ApiClient {
                 log::trace!("Response: 200");
                 Ok(response.json().await?)
             }
-            400 => {
-                log::trace!("Response: 400");
-                Err(RequestError::ImageTooBig.into())
-            }
             x => {
                 log::trace!("Response: {}", x);
                 Err(RequestError::UnknownError.into())
@@ -106,10 +111,6 @@ impl ApiClient {
             200 => {
                 log::trace!("Response: 200");
                 Ok(response.json().await?)
-            }
-            400 => {
-                log::trace!("Response: 400");
-                Err(RequestError::ImageTooBig.into())
             }
             x => {
                 log::trace!("Response: {}", x);
