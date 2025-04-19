@@ -1,5 +1,6 @@
 #![deny(missing_docs)]
 #![deny(clippy::missing_docs_in_private_items)]
+#![feature(if_let_guard)]
 //! "Object Location Tracking System with Camera"
 //! provides functionlity to deploy a system to observe
 //! your belongings at home through a camera and
