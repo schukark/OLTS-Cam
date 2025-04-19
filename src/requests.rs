@@ -70,6 +70,7 @@ pub async fn get_objects(address_str: &str) -> Result<ObjectPhoto> {
 mod tests {
     use super::*;
     use anyhow::Result;
+    use httpmock::prelude::*;
 
     /// Tests for the change_settings() method
     mod change_settings_tests {
@@ -78,18 +79,14 @@ mod tests {
         /// Tests whether a no such setting case is handled correctly
         #[tokio::test]
         async fn test_no_such_setting() -> Result<()> {
-            let mut server = mockito::Server::new_async().await;
+            let server = MockServer::start_async().await;
 
-            let host_with_port = server.host_with_port();
+            let mock = server.mock(|when, then| {
+                when.method(POST).path("/settings");
+                then.status(401).header("content-type", "application/json");
+            });
 
-            dbg!(&host_with_port);
-
-            let mock = server
-                .mock("POST", "/settings")
-                .with_status(401)
-                .with_header("content-type", "application/json")
-                .create_async()
-                .await;
+            let host_with_port = server.host() + ":" + &server.port().to_string();
 
             let settings = serde_json::from_str(
                 "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
@@ -104,16 +101,14 @@ mod tests {
         /// Tests the correct behavior
         #[tokio::test]
         async fn test_correct_case() -> Result<()> {
-            let mut server = mockito::Server::new_async().await;
+            let server = MockServer::start_async().await;
 
-            let host_with_port = server.host_with_port();
+            let mock = server.mock(|when, then| {
+                when.method(POST).path("/settings");
+                then.status(200).header("content-type", "application/json");
+            });
 
-            let mock = server
-                .mock("POST", "/settings")
-                .with_status(200)
-                .with_header("content-type", "application/json")
-                .create_async()
-                .await;
+            let host_with_port = server.host() + ":" + &server.port().to_string();
 
             let settings = serde_json::from_str(
                 r#"{"receiver": "camera","settings": [{"key": "FPS","value": "30"}]}"#,
@@ -133,19 +128,18 @@ mod tests {
         /// Tests the correct behavior
         #[tokio::test]
         async fn test_correct() -> Result<()> {
-            let mut server = mockito::Server::new_async().await;
+            let server = MockServer::start_async().await;
 
-            let host_with_port = server.host_with_port();
-
-            let mock = server
-                .mock("GET", "/settings/camera")
-                .with_status(200)
-                .with_header("content-type", "application/json")
-                .with_body(
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/settings/camera");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(
                     "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
-                )
-                .create_async()
-                .await;
+                );
+            });
+
+            let host_with_port = server.host() + ":" + &server.port().to_string();
 
             let settings = serde_json::from_str(
                 "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
@@ -168,17 +162,16 @@ mod tests {
         /// Tests whether the behavior when the image is too big is correct
         #[tokio::test]
         async fn test_image_too_big() -> Result<()> {
-            let mut server = mockito::Server::new_async().await;
+            let server = MockServer::start_async().await;
 
-            let host_with_port = server.host_with_port();
-
-            let mock = server
-                .mock("GET", "/object/apple")
-                .with_status(400)
-                .with_header("content-type", "application/json")
-                .with_body("{\"height\":224,\"width\":224,\"image\":\"aboba\"}")
-                .create_async()
-                .await;
+            let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/object/apple");
+                then.status(400)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+            let host_with_port = server.host() + ":" + &server.port().to_string();
 
             assert!(get_object(&host_with_port, "apple").await.is_err());
             mock.assert_async().await;
@@ -189,19 +182,22 @@ mod tests {
         /// Correct behavior test
         #[tokio::test]
         async fn test_correct_case() -> Result<()> {
-            let mut server = mockito::Server::new_async().await;
+            let server = MockServer::start_async().await;
 
-            let host_with_port = server.host_with_port();
+            let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/object/apple");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+            let host_with_port = server.host() + ":" + &server.port().to_string();
 
-            let mock = server
-                .mock("GET", "/object/apple")
-                .with_status(200)
-                .with_header("content-type", "application/json")
-                .with_body("{\"height\":224,\"width\":224,\"image\":\"aboba\"}")
-                .create_async()
-                .await;
+            let object_photo = serde_json::from_str(body)?;
 
-            assert!(get_object(&host_with_port, "apple").await.is_ok());
+            let response = get_object(&host_with_port, "apple").await;
+
+            assert_eq!(response?, object_photo);
             mock.assert_async().await;
 
             Ok(())
@@ -215,17 +211,17 @@ mod tests {
         /// Tests the situation when the file size is too big
         #[tokio::test]
         async fn test_image_too_big() -> Result<()> {
-            let mut server = mockito::Server::new_async().await;
+            let server = MockServer::start_async().await;
 
-            let host_with_port = server.host_with_port();
+            let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/objects");
+                then.status(400)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
 
-            let mock = server
-                .mock("GET", "/objects")
-                .with_status(400)
-                .with_header("content-type", "application/json")
-                .with_body("{\"height\":224,\"width\":224,\"image\":\"aboba\"}")
-                .create_async()
-                .await;
+            let host_with_port = server.host() + ":" + &server.port().to_string();
 
             assert!(get_objects(&host_with_port).await.is_err());
             mock.assert_async().await;
@@ -236,19 +232,24 @@ mod tests {
         /// Tests the expected behavior
         #[tokio::test]
         async fn test_correct_case() -> Result<()> {
-            let mut server = mockito::Server::new_async().await;
+            let server = MockServer::start_async().await;
 
-            let host_with_port = server.host_with_port();
+            let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/objects");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
 
-            let mock = server
-                .mock("GET", "/objects")
-                .with_status(200)
-                .with_header("content-type", "application/json")
-                .with_body("{\"height\":224,\"width\":224,\"image\":\"aboba\"}")
-                .create_async()
-                .await;
+            let host_with_port = server.host() + ":" + &server.port().to_string();
+            dbg!(&host_with_port);
 
-            assert!(get_objects(&host_with_port).await.is_ok());
+            let object_photo = serde_json::from_str(body)?;
+
+            let response = get_objects(&host_with_port).await;
+
+            assert_eq!(response?, object_photo);
             mock.assert_async().await;
 
             Ok(())
