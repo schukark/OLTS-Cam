@@ -722,7 +722,6 @@ dependencies = [
  "dotenv",
  "futures",
  "httpmock",
- "lazy_static",
  "log",
  "pretty_env_logger",
  "reqwest 0.12.15",
@@ -732,6 +731,7 @@ dependencies = [
  "teloxide_tests",
  "thiserror 2.0.12",
  "tokio",
+ "url",
 ]
 
 [[package]]
