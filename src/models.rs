@@ -6,7 +6,7 @@ use serde_json::to_string_pretty;
 use std::fmt::Display;
 
 /// A simple wrapper for (key, value) pairs in settings
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 struct SettingsInner {
     /// Settings' name
     key: String,
@@ -15,7 +15,8 @@ struct SettingsInner {
 }
 
 /// Different types of settings receivers (different configurable components)
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum Receiver {
     /// Camera variant
     Camera,
@@ -53,7 +54,7 @@ impl TryFrom<String> for Receiver {
 }
 
 /// Settings model to interchange with the python desktop client
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Settings {
     /// Type of settings' receiver
     receiver: Receiver,
@@ -75,14 +76,6 @@ impl Display for Settings {
             rcv_emoji,
             to_string_pretty(self).unwrap()
         )
-    }
-}
-
-impl TryInto<Settings> for String {
-    type Error = ModelError;
-
-    fn try_into(self) -> Result<Settings, Self::Error> {
-        unimplemented!()
     }
 }
 
