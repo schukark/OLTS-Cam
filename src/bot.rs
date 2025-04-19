@@ -53,10 +53,22 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
                 .await?
         }
         Command::CurrentState => {
-            bot.send_message(msg.chat.id, String::from("current-state"))
-                .await?
+            let object = get_objects(ADDRESS_STR).await;
+
+            if let Ok(object_inner) = object {
+                let conversion_result = convert_to_image(object_inner.image());
+                if conversion_result.is_err() {
+                    bot.send_message(msg.chat.id, "Incorrect base64 image string received")
+                        .await?
+                } else {
+                    bot.send_photo(msg.chat.id, conversion_result.expect("CAN'T FAIL"))
+                        .await?
+                }
+            } else {
+                bot.send_message(msg.chat.id, "No such item found").await?
+            }
         }
-        Command::WhereIs(object_name) => {
+        Command::WhereIs(ref object_name) => {
             let object = get_object(ADDRESS_STR, object_name).await;
 
             if let Ok(object_inner) = object {
