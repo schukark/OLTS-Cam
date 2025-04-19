@@ -1,7 +1,4 @@
-use crate::models;
-use crate::models::*;
 use crate::requests::*;
-use std::sync::Arc;
 
 use teloxide::{
     adaptors::throttle::{Limits, Throttle},
@@ -52,7 +49,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
             let object = get_object(object_name).await;
 
             if let Ok(object_inner) = object {
-                let conversion_result = convert_to_image(&object_inner.get_image());
+                let conversion_result = convert_to_image(object_inner.get_image());
                 if conversion_result.is_err() {
                     bot.send_message(msg.chat.id, "Incorrect base64 image string received")
                         .await?
@@ -65,11 +62,26 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
             }
         }
         Command::GetSettings(receiver) => {
-            if models::RECEIVER_VALUES.contains(&receiver) {
-                let settings = get_settings(&receiver).await;
-                bot.send_message(msg.chat.id, settings).await?
-            } else {
-                bot.send_message(msg.chat.id, "Invalid receiver").await?
+            let rcv = receiver.try_into();
+
+            if rcv.is_err() {
+                bot.send_message(msg.chat.id, "Incorrect receiver specified")
+                    .await?;
+            }
+
+            let rcv = rcv.unwrap();
+
+            let result = get_settings(rcv).await;
+
+            match result {
+                Ok(settings) => {
+                    bot.send_message(msg.chat.id, format!("Current settings are:\n{}", settings))
+                        .await?
+                }
+                Err(_) => {
+                    bot.send_message(msg.chat.id, "Couldn't get current settings")
+                        .await?
+                }
             }
         }
         Command::ChangeSettings(settings) => {
@@ -77,18 +89,21 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
 
             if settings_formatted.is_err() {
                 bot.send_message(msg.chat.id, "Incorrectly formatted settings")
-                    .await?
+                    .await?;
             }
 
             let settings_formatted = settings_formatted.unwrap();
 
             let result = change_settings(settings_formatted).await;
-            if result.is_ok() {
-                bot.send_message(msg.chat.id, "Settings changed successfully")
-                    .await?
-            } else {
-                bot.send_message(msg.chat.id, "Failed to change settings")
-                    .await?
+            match result {
+                Ok(_) => {
+                    bot.send_message(msg.chat.id, "Settings changed successfully")
+                        .await?
+                }
+                Err(_) => {
+                    bot.send_message(msg.chat.id, "Failed to change settings")
+                        .await?
+                }
             }
         }
     };

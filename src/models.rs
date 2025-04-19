@@ -1,6 +1,8 @@
+use crate::errors::ModelError;
 use serde::{Deserialize, Serialize};
 use serde_json::to_string_pretty;
 use std::fmt::Display;
+
 #[derive(Debug, Serialize, Deserialize)]
 struct SettingsInner {
     key: String,
@@ -14,8 +16,6 @@ pub enum Receiver {
     Fs,
 }
 
-const RECEIVER_VALUES: [&'static str; 3] = ["camera", "db", "fs"];
-
 impl Display for Receiver {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let name = match self {
@@ -25,6 +25,21 @@ impl Display for Receiver {
         };
 
         write!(f, "{}", name)
+    }
+}
+
+impl TryFrom<String> for Receiver {
+    type Error = ModelError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "db" => Ok(Receiver::Db),
+            "camera" => Ok(Receiver::Camera),
+            "fs" => Ok(Receiver::Fs),
+            x => Err(ModelError::InvalidReceiver(format!(
+                "{x} is not a valid receiver"
+            ))),
+        }
     }
 }
 
@@ -46,13 +61,13 @@ impl Display for Settings {
             f,
             "Settings for {} are: {}",
             rcv_emoji,
-            to_string_pretty(&obj).unwrap()
+            to_string_pretty(self).unwrap()
         )
     }
 }
 
 impl TryInto<Settings> for String {
-    type Error;
+    type Error = ModelError;
 
     fn try_into(self) -> Result<Settings, Self::Error> {
         unimplemented!()
