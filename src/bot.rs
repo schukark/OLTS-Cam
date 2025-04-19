@@ -1,5 +1,4 @@
 //! This module provides all the functionality of the bot according to the task
-
 use crate::requests::*;
 
 use teloxide::{
@@ -8,6 +7,9 @@ use teloxide::{
     types::InputFile,
     utils::command::BotCommands,
 };
+
+/// Python desktop client server address and port
+const ADDRESS_STR: &str = "127.0.0.1:19841";
 
 use base64::{prelude::*, DecodeError};
 
@@ -55,7 +57,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
                 .await?
         }
         Command::WhereIs(object_name) => {
-            let object = get_object(object_name).await;
+            let object = get_object(ADDRESS_STR, object_name).await;
 
             if let Ok(object_inner) = object {
                 let conversion_result = convert_to_image(object_inner.image());
@@ -80,7 +82,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
 
             let rcv = rcv.unwrap();
 
-            let result = get_settings(rcv).await;
+            let result = get_settings(ADDRESS_STR, rcv).await;
 
             match result {
                 Ok(settings) => {
@@ -94,7 +96,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
             }
         }
         Command::ChangeSettings(settings) => {
-            let settings_formatted = settings.try_into();
+            let settings_formatted = serde_json::from_str(&settings);
 
             if settings_formatted.is_err() {
                 bot.send_message(msg.chat.id, "Incorrectly formatted settings")
@@ -103,7 +105,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
 
             let settings_formatted = settings_formatted.unwrap();
 
-            let result = change_settings(settings_formatted).await;
+            let result = change_settings(ADDRESS_STR, settings_formatted).await;
             match result {
                 Ok(_) => {
                     bot.send_message(msg.chat.id, "Settings changed successfully")
