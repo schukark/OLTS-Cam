@@ -2,14 +2,16 @@
 use crate::requests::*;
 
 use teloxide::{
-    adaptors::throttle::{Limits, Throttle},
-    prelude::*,
-    types::InputFile,
-    utils::command::BotCommands,
+    dispatching::UpdateHandler, prelude::*, types::InputFile, utils::command::BotCommands,
 };
 
-/// Python desktop client server address and port
-const ADDRESS_STR: &str = "127.0.0.1:19841";
+/// Returns the API address as "host:port", defaulting to 127.0.0.1:19841
+fn get_api_address() -> String {
+    let result = std::env::var("API_ADDRESS").unwrap_or_else(|_| "127.0.0.1:19841".to_string());
+    dbg!(&result);
+
+    result
+}
 
 use base64::{prelude::*, DecodeError};
 
@@ -46,42 +48,45 @@ enum Command {
     ChangeSettings(String),
 }
 
-async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResult<()> {
+type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>;
+
+/// Function that determines what the bot will answer depending on the command used
+async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> HandlerResult {
     match cmd {
         Command::Help => {
             bot.send_message(msg.chat.id, Command::descriptions().to_string())
                 .await?
         }
         Command::CurrentState => {
-            let object = get_objects(ADDRESS_STR).await;
+            let object = api.get_objects().await;
 
             if let Ok(object_inner) = object {
-                let conversion_result = convert_to_image(object_inner.image());
-                if conversion_result.is_err() {
-                    bot.send_message(msg.chat.id, "Incorrect base64 image string received")
-                        .await?
-                } else {
-                    bot.send_photo(msg.chat.id, conversion_result.expect("CAN'T FAIL"))
-                        .await?
+                match convert_to_image(object_inner.image()) {
+                    Ok(photo) => bot.send_photo(msg.chat.id, photo).await?,
+                    Err(_) => {
+                        bot.send_message(msg.chat.id, "Incorrect base64 image string received")
+                            .await?
+                    }
                 }
             } else {
-                bot.send_message(msg.chat.id, "No such item found").await?
+                bot.send_message(msg.chat.id, "Error retrieving image")
+                    .await?
             }
         }
         Command::WhereIs(ref object_name) => {
-            let object = get_object(ADDRESS_STR, object_name).await;
+            let object = api.get_object(object_name).await;
 
             if let Ok(object_inner) = object {
-                let conversion_result = convert_to_image(object_inner.image());
-                if conversion_result.is_err() {
-                    bot.send_message(msg.chat.id, "Incorrect base64 image string received")
-                        .await?
-                } else {
-                    bot.send_photo(msg.chat.id, conversion_result.expect("CAN'T FAIL"))
-                        .await?
+                match convert_to_image(object_inner.image()) {
+                    Ok(photo) => bot.send_photo(msg.chat.id, photo).await?,
+                    Err(_) => {
+                        bot.send_message(msg.chat.id, "Incorrect base64 image string received")
+                            .await?
+                    }
                 }
             } else {
-                bot.send_message(msg.chat.id, "No such item found").await?
+                bot.send_message(msg.chat.id, "Error retrieving image")
+                    .await?
             }
         }
         Command::GetSettings(receiver) => {
@@ -94,7 +99,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
 
             let rcv = rcv.unwrap();
 
-            let result = get_settings(ADDRESS_STR, rcv).await;
+            let result = api.get_settings(rcv).await;
 
             match result {
                 Ok(settings) => {
@@ -117,7 +122,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
 
             let settings_formatted = settings_formatted.unwrap();
 
-            let result = change_settings(ADDRESS_STR, settings_formatted).await;
+            let result = api.change_settings(settings_formatted).await;
             match result {
                 Ok(_) => {
                     bot.send_message(msg.chat.id, "Settings changed successfully")
@@ -134,11 +139,91 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
     Ok(())
 }
 
+/// Handler
+fn handler_tree() -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + 'static>> {
+    // A simple handler. But you need to make it into a separate thing!
+    dptree::entry().branch(
+        Update::filter_message()
+            .branch(dptree::entry().filter_command::<Command>().endpoint(answer)),
+    )
+}
+
 /// Starts the bot from the environmental variable configuration
 pub async fn run_bot() {
     log::info!("Starting the bot...");
 
-    let bot = Bot::from_env().throttle(Limits::default());
+    let bot = Bot::from_env();
+    let tree = dptree::entry().branch(handler_tree());
+    let api = ApiClient::new(get_api_address());
 
-    Command::repl(bot, answer).await;
+    Dispatcher::builder(bot, tree)
+        .enable_ctrlc_handler()
+        .dependencies(dptree::deps![api.clone()])
+        .build()
+        .dispatch()
+        .await;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anyhow::Result;
+    use httpmock::prelude::*;
+    use teloxide_tests::{MockBot, MockMessageText};
+    use tokio::time::{timeout, Duration};
+
+    mod current_state_tests {
+        use super::*;
+
+        #[tokio::test]
+        async fn test_erroneous_server() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/objects");
+                then.status(421).header("content-type", "application/json");
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Error retrieving image"),
+            )
+            .await?;
+            mock.assert_async().await;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_incorrect_base64() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let body = "\"width\":224,\"height\":224,\"image\":\"aboba\"";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/objects");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text("Incorrect base64 image string received"),
+            )
+            .await?;
+            mock.assert_async().await;
+
+            Ok(())
+        }
+    }
 }
