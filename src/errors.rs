@@ -8,6 +8,10 @@ pub enum ModelError {
     /// Invalid reciever type (if it is not one of the preconfigured ones)
     #[error("")]
     InvalidReceiver(String),
+
+    /// Invalid settings
+    #[error("")]
+    InvalidSettings,
 }
 
 /// Inner error type for requests
@@ -24,8 +28,4 @@ pub enum RequestError {
     /// Unknown error
     #[error("Unknown error")]
     UnknownError,
-
-    /// When the image size exceeds a limit
-    #[error("File size too big")]
-    ImageTooBig,
 }
