@@ -7,16 +7,16 @@ use teloxide::{
 
 /// Returns the API address as "host:port", defaulting to 127.0.0.1:19841
 fn get_api_address() -> String {
-    let result = std::env::var("API_ADDRESS").unwrap_or_else(|_| "127.0.0.1:19841".to_string());
-    dbg!(&result);
+    log::trace!("Queried the api address");
 
-    result
+    std::env::var("API_ADDRESS").unwrap_or_else(|_| "127.0.0.1:19841".to_string())
 }
 
 use base64::{prelude::*, DecodeError};
 
 /// This function takes a base64 encoded image and returns the decoded version of it (if it succeedes)
 fn convert_to_image(base64_image: &str) -> Result<InputFile, DecodeError> {
+    log::trace!("Decoding image from base64");
     Ok(InputFile::memory(BASE64_STANDARD.decode(base64_image)?))
 }
 
@@ -54,45 +54,66 @@ type HandlerResult = Result<(), Box<dyn std::error::Error + Send + Sync + 'stati
 async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> HandlerResult {
     match cmd {
         Command::Help => {
+            log::info!("Asked for list of all the commands");
+
             bot.send_message(msg.chat.id, Command::descriptions().to_string())
                 .await?
         }
         Command::CurrentState => {
+            log::info!("Asked for the current state");
+
             let object = api.get_objects().await;
 
             if let Ok(object_inner) = object {
+                log::debug!("Successfully received an image");
                 match convert_to_image(object_inner.image()) {
-                    Ok(photo) => bot.send_photo(msg.chat.id, photo).await?,
+                    Ok(photo) => {
+                        log::debug!("Successfully decoded the image from base64");
+                        bot.send_photo(msg.chat.id, photo).await?
+                    }
                     Err(_) => {
+                        log::debug!("Couldn't decode from base64");
                         bot.send_message(msg.chat.id, "Incorrect base64 image string received")
                             .await?
                     }
                 }
             } else {
+                log::debug!("Coudn't receive image through API");
                 bot.send_message(msg.chat.id, "Error retrieving image")
                     .await?
             }
         }
         Command::WhereIs(ref object_name) => {
+            log::info!("Asked where an object {} is", object_name);
+
             let object = api.get_object(object_name).await;
 
             if let Ok(object_inner) = object {
+                log::debug!("Successfully received an image");
                 match convert_to_image(object_inner.image()) {
-                    Ok(photo) => bot.send_photo(msg.chat.id, photo).await?,
+                    Ok(photo) => {
+                        log::debug!("Successfully decoded the image from base64");
+                        bot.send_photo(msg.chat.id, photo).await?
+                    }
                     Err(_) => {
+                        log::debug!("Couldn't decode from base64");
                         bot.send_message(msg.chat.id, "Incorrect base64 image string received")
                             .await?
                     }
                 }
             } else {
+                log::debug!("Coudn't receive image through API");
                 bot.send_message(msg.chat.id, "Error retrieving image")
                     .await?
             }
         }
         Command::GetSettings(receiver) => {
+            log::info!("Asked for settings");
+
             let rcv = receiver.try_into();
 
             if rcv.is_err() {
+                log::debug!("No such receiver");
                 bot.send_message(msg.chat.id, "Incorrect receiver specified")
                     .await?;
             }
@@ -103,19 +124,24 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
 
             match result {
                 Ok(settings) => {
+                    log::debug!("Correctly formatted settings");
                     bot.send_message(msg.chat.id, format!("Current settings are:\n{}", settings))
                         .await?
                 }
                 Err(_) => {
+                    log::debug!("Incorrectly formatted settings");
                     bot.send_message(msg.chat.id, "Couldn't get current settings")
                         .await?
                 }
             }
         }
         Command::ChangeSettings(settings) => {
+            log::info!("Asked to change the settings");
+
             let settings_formatted = serde_json::from_str(&settings);
 
             if settings_formatted.is_err() {
+                log::debug!("Settings formatted incorrectly");
                 bot.send_message(msg.chat.id, "Incorrectly formatted settings")
                     .await?;
             }
@@ -125,10 +151,12 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
             let result = api.change_settings(settings_formatted).await;
             match result {
                 Ok(_) => {
+                    log::debug!("Setting changed successfully");
                     bot.send_message(msg.chat.id, "Settings changed successfully")
                         .await?
                 }
                 Err(_) => {
+                    log::debug!("Failed to change settings");
                     bot.send_message(msg.chat.id, "Failed to change settings")
                         .await?
                 }
@@ -153,8 +181,13 @@ pub async fn run_bot() {
     log::info!("Starting the bot...");
 
     let bot = Bot::from_env();
+    log::debug!("Constructed bot from env variables");
+
     let tree = dptree::entry().branch(handler_tree());
+    log::debug!("Constructed the dependency map");
+
     let api = ApiClient::new(get_api_address());
+    log::debug!("Constructed an api client");
 
     Dispatcher::builder(bot, tree)
         .enable_ctrlc_handler()
@@ -203,7 +236,7 @@ mod tests {
         async fn test_incorrect_base64() -> Result<()> {
             let server = MockServer::start_async().await;
 
-            let body = "\"width\":224,\"height\":224,\"image\":\"aboba\"";
+            let body = "{\"width\":224,\"height\":224,\"image\":\"aboba\"}";
             let mock = server.mock(|when, then| {
                 when.method(GET).path("/objects");
                 then.status(200)
@@ -222,6 +255,36 @@ mod tests {
             )
             .await?;
             mock.assert_async().await;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_correct() -> Result<()> {
+            let image = "c2hvcnQ=";
+
+            let server = MockServer::start_async().await;
+
+            let body = "{\"width\":224,\"height\":224,\"image\":\"".to_owned() + image + "\"}";
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/objects");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(body);
+            });
+
+            let api = ApiClient::new(server.address().to_string());
+
+            let bot = MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(Duration::from_secs(1), bot.dispatch()).await?;
+            mock.assert_async().await;
+
+            bot.get_responses()
+                .sent_messages_photo
+                .last()
+                .expect("Should be a photo sent");
 
             Ok(())
         }
