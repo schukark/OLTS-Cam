@@ -13,18 +13,6 @@ mod errors;
 mod models;
 mod requests;
 
-use lazy_static::lazy_static;
-use reqwest::Client;
-
-lazy_static! {
-    static ref CLIENT: Client = Client::new();
-}
-
-/// Python desktop client server address
-pub const ADDRESS: &str = "127.0.0.1";
-/// Python desktop client server port
-pub const PORT: u32 = 19841;
-
 #[tokio::main]
 async fn main() {
     dotenv().ok();
