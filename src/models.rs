@@ -1,18 +1,27 @@
+//! Models module defines the models that are used in the exchange between the rust bot client and the python api server
+
 use crate::errors::ModelError;
 use serde::{Deserialize, Serialize};
 use serde_json::to_string_pretty;
 use std::fmt::Display;
 
+/// A simple wrapper for (key, value) pairs in settings
 #[derive(Debug, Serialize, Deserialize)]
 struct SettingsInner {
+    /// Settings' name
     key: String,
+    /// Value of the current settings' parameter
     value: String,
 }
 
+/// Different types of settings receivers (different configurable components)
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Receiver {
+    /// Camera variant
     Camera,
+    /// Database variant
     Db,
+    /// Filesystem variant
     Fs,
 }
 
@@ -43,9 +52,12 @@ impl TryFrom<String> for Receiver {
     }
 }
 
+/// Settings model to interchange with the python desktop client
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
+    /// Type of settings' receiver
     receiver: Receiver,
+    /// The settings in key-value pairs
     settings: Vec<SettingsInner>,
 }
 
@@ -74,15 +86,20 @@ impl TryInto<Settings> for String {
     }
 }
 
+/// A model representing a photo with an object on it for python interoperability
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ObjectPhoto {
+    /// Height of the image
     height: u32,
+    /// Width of the image
     width: u32,
+    /// Base64 encoded image
     image: String,
 }
 
 impl ObjectPhoto {
-    pub fn get_image(&self) -> &str {
+    /// Getter for the image field
+    pub fn image(&self) -> &str {
         &self.image
     }
 }

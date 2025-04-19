@@ -1,3 +1,5 @@
+//! This module provides all the functionality of the bot according to the task
+
 use crate::requests::*;
 
 use teloxide::{
@@ -9,28 +11,35 @@ use teloxide::{
 
 use base64::{prelude::*, DecodeError};
 
+/// This function takes a base64 encoded image and returns the decoded version of it (if it succeedes)
 fn convert_to_image(base64_image: &str) -> Result<InputFile, DecodeError> {
     Ok(InputFile::memory(BASE64_STANDARD.decode(base64_image)?))
 }
 
+/// Command implementation for the bot (teloxide::utils::command::BotCommands)
 #[derive(Clone, BotCommands)]
 #[command(
     rename_rule = "lowercase",
     description = "These commands are supported:"
 )]
 enum Command {
+    /// Help command that will output all available commands
     #[command(description = "List all available commands")]
     Help,
 
+    /// Get the current state of the camera feed
     #[command(description = "Display current objects")]
     CurrentState,
 
+    /// Search for object
     #[command(description = "Search for object")]
     WhereIs(String),
 
+    /// Get current settings for the chosen receiver
     #[command(description = "Get settings")]
     GetSettings(String),
 
+    /// Change settings for a chosen receiver
     #[command(description = "Change settings")]
     ChangeSettings(String),
 }
@@ -49,7 +58,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
             let object = get_object(object_name).await;
 
             if let Ok(object_inner) = object {
-                let conversion_result = convert_to_image(object_inner.get_image());
+                let conversion_result = convert_to_image(object_inner.image());
                 if conversion_result.is_err() {
                     bot.send_message(msg.chat.id, "Incorrect base64 image string received")
                         .await?
@@ -111,6 +120,7 @@ async fn answer(bot: Throttle<Bot>, msg: Message, cmd: Command) -> ResponseResul
     Ok(())
 }
 
+/// Starts the bot from the environmental variable configuration
 pub async fn run_bot() {
     log::info!("Starting the bot...");
 
