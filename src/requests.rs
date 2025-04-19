@@ -31,51 +31,90 @@ impl ApiClient {
         let request_url = format!("http://{}/settings", self.base_url);
         let response = self.client.post(request_url).json(&settings).send().await?;
 
+        log::trace!("'Change settings' received a response from an api server");
+
         match response.status().as_u16() {
-            200 => Ok(()),
-            400 => Err(RequestError::NoSuchReceiver.into()),
-            401 => Err(RequestError::NoSuchSetting.into()),
-            _ => Err(RequestError::UnknownError.into()),
+            200 => {
+                log::trace!("Response: 200");
+                Ok(())
+            }
+            400 => {
+                log::trace!("Response: 400");
+                Err(RequestError::NoSuchReceiver.into())
+            }
+            401 => {
+                log::trace!("Response: 401");
+                Err(RequestError::NoSuchSetting.into())
+            }
+            x => {
+                log::trace!("Response: {}", x);
+                Err(RequestError::UnknownError.into())
+            }
         }
     }
 
     /// Function that gets a current settings and reports if any error occured
     pub async fn get_settings(&self, receiver: Receiver) -> Result<Settings> {
         let request_url = format!("http://{}/settings/{}", self.base_url, receiver);
-
         let response = self.client.get(request_url).send().await?;
 
+        log::trace!("'Get settings' received a response from an api server");
+
         match response.status().as_u16() {
-            200 => Ok(response.json().await?),
-            _ => Err(RequestError::UnknownError.into()),
+            200 => {
+                log::trace!("Response: 200");
+                Ok(response.json().await?)
+            }
+            x => {
+                log::trace!("Response: {}", x);
+                Err(RequestError::UnknownError.into())
+            }
         }
     }
 
     /// Function that gets an object by its name and reports if any error occured
     pub async fn get_object(&self, name: &str) -> Result<ObjectPhoto> {
         let request_url = format!("http://{}/object/{}", self.base_url, name);
-
         let response = self.client.get(request_url).send().await?;
 
-        dbg!(&response);
+        log::trace!("'Get object' received a response from an api server");
 
         match response.status().as_u16() {
-            200 => Ok(response.json().await?),
-            400 => Err(RequestError::ImageTooBig.into()),
-            _ => Err(RequestError::UnknownError.into()),
+            200 => {
+                log::trace!("Response: 200");
+                Ok(response.json().await?)
+            }
+            400 => {
+                log::trace!("Response: 400");
+                Err(RequestError::ImageTooBig.into())
+            }
+            x => {
+                log::trace!("Response: {}", x);
+                Err(RequestError::UnknownError.into())
+            }
         }
     }
 
     /// Function that requests the current state of the camera feed
     pub async fn get_objects(&self) -> Result<ObjectPhoto> {
         let request_url = format!("http://{}/objects", self.base_url);
-
         let response = self.client.get(request_url).send().await?;
 
+        log::trace!("'Get objects' received a response from an api server");
+
         match response.status().as_u16() {
-            200 => Ok(response.json().await?),
-            400 => Err(RequestError::ImageTooBig.into()),
-            _ => Err(RequestError::UnknownError.into()),
+            200 => {
+                log::trace!("Response: 200");
+                Ok(response.json().await?)
+            }
+            400 => {
+                log::trace!("Response: 400");
+                Err(RequestError::ImageTooBig.into())
+            }
+            x => {
+                log::trace!("Response: {}", x);
+                Err(RequestError::UnknownError.into())
+            }
         }
     }
 }
