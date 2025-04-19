@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
     title: OLTS-Cam API
-    version: 0.2.0
+    version: 0.2.1
 
 paths:
     /settings:
@@ -45,7 +45,7 @@ paths:
         get:
             tags:
                 - picture
-            operationId: getObjects
+            operationId: getObject
             responses:
                 "200":
                     description: Successful operation
