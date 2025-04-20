@@ -130,8 +130,6 @@ jobs:
             -Copt-level=0
             -Clink-dead-code
             -Coverflow-checks=off
-          LLVM_PROFILE_FILE: 'coverage-%p-%m.profraw'
-      - run: ls -R .
       - name: Gather coverage data
         id: coverage
         uses: actions-rs/grcov@v0.1
