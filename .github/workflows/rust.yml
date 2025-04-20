@@ -116,20 +116,18 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Generate code coverage
         run: |
-          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
-
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v2
+          cargo +nightly tarpaulin \
+            --verbose \
+            --all-features \
+            --workspace \
+            --timeout 120 \
+            --out Lcov \
+            --output-dir coverage
+      - name: Upload to Coveralls
+        uses: coverallsapp/github-action@v2.3.6
         with:
-          # token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
-          fail_ci_if_error: true
-  
-      - name: Deploy coverage site & badge data to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: coverage
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: coverage/lcov.info
 
   docs:
     name: Generate and Upload Docs
@@ -158,6 +156,10 @@ jobs:
         run: cargo doc --workspace --no-deps
       - name: Disable Jekyll
         run: touch target/doc/.nojekyll
+      - name: Add redirect
+        run: echo '<meta http-equiv="refresh" content="0;url=aoc/index.html">' > target/doc/index.html
+      - name: Remove lock file
+        run: rm target/doc/.lock
       - name: Debug docs output
         run: |
           echo "Contents of target/doc:"
