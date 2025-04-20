@@ -94,6 +94,9 @@ jobs:
     name: Generate test coverage badge
     needs: build
     runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin:develop-nightly
+      options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -111,66 +114,15 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Run tests with coverage instrumentation
-        uses: actions-rs/cargo@v1
+      - name: Generate code coverage
+        run: |
+          cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v2
         with:
-          command: test
-          args: --all-features
-        env:
-          LLVM_PROFILE_FILE: "coverage-%p-%m.profraw"
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: >-
-            -Cinstrument-coverage
-            -Ccodegen-units=1
-            -Copt-level=0
-            -Clink-dead-code
-            -Coverflow-checks=off
-          RUSTDOCFLAGS: >-
-            -Cinstrument-coverage
-            -Ccodegen-units=1
-            -Copt-level=0
-            -Clink-dead-code
-            -Coverflow-checks=off
-      - name: Debug test output
-        run: |
-          echo "Contents of target/doc:"
-          ls -R . || echo "No docs found, continuing..."
-      - name: Gather coverage data
-        id: coverage
-        uses: actions-rs/grcov@v0.1
-      - name: Render HTML coverage report & prepare badge data
-        run: |
-          # 1) Render HTML
-          grcov . \
-            --binary-path ./target/debug/ \
-            --source-dir . \
-            --branch \
-            --ignore-not-existing \
-            -t html \
-            -o coverage/html
-  
-          # 2) Compute overall coverage as an integer percentage:
-          COVERAGE=$(grcov . \
-            --binary-path ./target/debug/ \
-            --source-dir . \
-            --branch \
-            --ignore-not-existing \
-            -t cobertura \
-            -o coverage/cobertura.xml \
-            && xmlstarlet sel \
-                -t \
-                -v "round( sum(//coverage/@line-rate) div count(//coverage/@line-rate) * 100 )" \
-                coverage/cobertura.xml)
-  
-          # 3) Emit a Shields.io–style JSON endpoint:
-          mkdir -p coverage/json
-          cat <<EOF > coverage/json/coverage.json
-          {
-            "schemaVersion": 1,
-            "label": "coverage",
-            "message": "${COVERAGE}%"
-          }
-          EOF
+          # token: ${{secrets.CODECOV_TOKEN}} # not required for public repos
+          fail_ci_if_error: true
   
       - name: Deploy coverage site & badge data to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
