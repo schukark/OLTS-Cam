@@ -162,7 +162,7 @@ jobs:
       - name: Disable Jekyll
         run: touch target/doc/.nojekyll
       - name: Add redirect
-        run: echo '<meta http-equiv="refresh" content="0;url=aoc/index.html">' > target/doc/index.html
+        run: echo '<meta http-equiv="refresh" content="0;url=camera_detection_bot/index.html">' > target/doc/index.html
       - name: Remove lock file
         run: rm target/doc/.lock
       - name: Debug docs output
@@ -173,7 +173,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           include-hidden-files: true
-          path: target/doc/camera_detection_bot
+          path: target/doc/
 
   deploy:
     name: Deploy Pages
