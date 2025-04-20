@@ -95,6 +95,8 @@ jobs:
     name: Generate test coverage badge
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     container:
       image: xd009642/tarpaulin:develop-nightly
       options: --security-opt seccomp=unconfined
