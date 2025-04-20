@@ -32,6 +32,9 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
         run: cargo build --verbose
+        env:
+          LLVM_PROFILE_FILE: 'target/coverage/%p-%m.profraw'
+          RUSTFLAGS: '-C instrument-coverage'
 
   lint:
     name: Lint
@@ -120,6 +123,9 @@ jobs:
           cargo install grcov
           cargo test --verbose --no-fail-fast --all-features
           grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing -o ./coverage/lcov.info
+        env:
+          LLVM_PROFILE_FILE: 'target/coverage/%p-%m.profraw'
+          RUSTFLAGS: '-C instrument-coverage'
       - name: Upload to Coveralls
         uses: coverallsapp/github-action@v2.3.6
         with:
