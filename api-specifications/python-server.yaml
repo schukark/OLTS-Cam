@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
     title: OLTS-Cam API
-    version: 0.2.1
+    version: 0.2.2
 
 paths:
     /settings:
@@ -19,6 +19,8 @@ paths:
                     description: Settings changed successfully
                 "401":
                     description: No such setting found
+                "422":
+                    description: No such settings receiver
     /objects:
         get:
             tags:
@@ -33,8 +35,6 @@ paths:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/object-photo"
-                "422":
-                    description: No such settings receiver
     /object/{name}:
         parameters:
             - name: name
