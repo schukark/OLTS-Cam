@@ -134,6 +134,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: coverage/lcov.info
+          base-path: /github/workspace
 
   docs:
     name: Generate and Upload Docs
