@@ -14,8 +14,9 @@ mod errors;
 mod models;
 mod requests;
 
+/// The main function that runs the bot
 #[tokio::main]
-async fn main() {
+pub async fn main() {
     dotenv().ok();
 
     pretty_env_logger::init();
