@@ -117,16 +117,24 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Generate coverage
-        id: coverage
-        run: |
-          echo $(pwd)
-          cargo install grcov
-          cargo test --verbose --no-fail-fast --all-features
-          grcov . --binary-path ./target/debug --ignore="/*" -s ./src -t lcov --branch --ignore-not-existing -o lcov.info
+      - name: Install grcov
+        uses: actions-rs/install@v0.1
+        with:
+          crate: grcov
+          version: 0.8.0
+          use-tool-cache: true
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --no-fail-fast
         env:
-          LLVM_PROFILE_FILE: 'target/coverage/%p-%m.profraw'
+          RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: '-C instrument-coverage'
+          RUSTDOCFLAGS: '-C instrument-coverage'
+          LLVM_PROFILE_FILE: 'coveralls-instrumentation-%p-%m.profraw'
+      - name: grcov
+        run: grcov . --binary-path ./target/debug --ignore="/*" -s ./src -t lcov --branch --ignore-not-existing -o lcov.info
       - name: Upload to Coveralls
         uses: coverallsapp/github-action@v2.3.6
         with:
