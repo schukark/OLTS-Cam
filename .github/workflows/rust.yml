@@ -83,11 +83,30 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          components: llvm-tools-preview
           override: true
       - name: Configure cache
         uses: Swatinem/rust-cache@v2
-      - name: Cargo test
-        run: RUST_TEST_THREADS=1 cargo test --all-features --no-fail-fast -- --test-threads=1
+      - name: Run tests with coverage instrumentation
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: >-
+            -Zinstrument-coverage
+            -Ccodegen-units=1
+            -Copt-level=0
+            -Clink-dead-code
+            -Coverflow-checks=off
+          RUSTDOCFLAGS: >-
+            -Zinstrument-coverage
+            -Ccodegen-units=1
+            -Copt-level=0
+            -Clink-dead-code
+            -Coverflow-checks=off
+          LLVM_PROFILE_FILE: 'coverage-%p-%m.profraw'
       - name: Gather coverage data
         id: coverage
         uses: actions-rs/grcov@v0.1
