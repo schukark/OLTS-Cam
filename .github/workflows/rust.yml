@@ -97,9 +97,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    container:
-      image: xd009642/tarpaulin:develop-nightly
-      options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -117,20 +114,12 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: Generate code coverage
+      - name: Generate coverage
         id: coverage
         run: |
-          cargo +nightly tarpaulin \
-            --verbose \
-            --all-features \
-            --workspace \
-            --timeout 120 \
-            --out Lcov \
-            --output-dir coverage
-          # Extract coverage percentage (assumes last line contains 'Coverage: XX.XX%')
-          COVERAGE=$(grep 'Coverage' coverage/lcov.info || echo "Coverage: 0%")
-          PERCENT=${COVERAGE#* } 
-          echo "::set-output name=covered::${PERCENT}"
+          cargo install grcov
+          cargo test --verbose --no-fail-fast --all-features
+          grcov . -s . --binary-path ./target/debug/ -t lcov --branch --ignore-not-existing -o ./coverage/lcov.info
       - name: Upload to Coveralls
         uses: coverallsapp/github-action@v2.3.6
         with:
