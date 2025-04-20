@@ -120,6 +120,7 @@ jobs:
       - name: Generate coverage
         id: coverage
         run: |
+          echo $(pwd)
           cargo install grcov
           cargo test --verbose --no-fail-fast --all-features
           grcov . --binary-path ./target/debug --ignore="/*" -s ./src -t lcov --branch --ignore-not-existing -o lcov.info
