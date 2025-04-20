@@ -185,6 +185,7 @@ fn handler_tree() -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + 'st
 }
 
 /// Starts the bot from the environmental variable configuration
+#[cfg_attr(coverage_nightly, coverage(off))]
 pub async fn run_bot() {
     log::info!("Starting the bot...");
 
@@ -206,6 +207,7 @@ pub async fn run_bot() {
 }
 
 #[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::*;
     use anyhow::Result;

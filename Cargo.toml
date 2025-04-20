@@ -19,6 +19,12 @@ anyhow = "1.0.98"
 url = "2.5.4"
 
 [dev-dependencies]
+cargo-llvm-cov = "0.6.16"
 httpmock = { version = "0.7.0", features = ["remote"] }
 serial_test = "3.2.0"
 teloxide_tests = "0.2.0"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(coverage,coverage_nightly)',
+] }

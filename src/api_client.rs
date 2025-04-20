@@ -122,6 +122,7 @@ impl ApiClient {
 
 /// Mock tests to verify the behavior
 #[cfg(test)]
+#[cfg_attr(coverage_nightly, coverage(off))]
 mod tests {
     use super::*;
     use anyhow::Result;
