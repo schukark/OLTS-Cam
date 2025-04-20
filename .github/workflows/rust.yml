@@ -131,6 +131,10 @@ jobs:
             -Copt-level=0
             -Clink-dead-code
             -Coverflow-checks=off
+      - name: Debug test output
+        run: |
+          echo "Contents of target/doc:"
+          ls -R . || echo "No docs found, continuing..."
       - name: Gather coverage data
         id: coverage
         uses: actions-rs/grcov@v0.1
