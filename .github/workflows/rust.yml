@@ -22,8 +22,14 @@ jobs:
           toolchain: nightly
           components: clippy
           override: true
-      - name: Configure cache
-        uses: Swatinem/rust-cache@v2
+      - name: ⚡ Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
         run: cargo build --verbose
 
@@ -39,8 +45,14 @@ jobs:
           toolchain: nightly
           components: clippy
           override: true
-      - name: Configure cache
-        uses: Swatinem/rust-cache@v2
+      - name: ⚡ Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Run Clippy
         run: cargo clippy --all-targets --all-features
 
@@ -56,8 +68,14 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - name: Configure cache
-        uses: Swatinem/rust-cache@v2
+      - name: ⚡ Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - id: coverage
         uses: bewee/rustdoc-coverage-action@v1
         with:
@@ -85,8 +103,14 @@ jobs:
           toolchain: nightly
           components: llvm-tools-preview
           override: true
-      - name: Configure cache
-        uses: Swatinem/rust-cache@v2
+      - name: ⚡ Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Run tests with coverage instrumentation
         uses: actions-rs/cargo@v1
         with:
@@ -161,7 +185,14 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - uses: Swatinem/rust-cache@v2
+      - name: ⚡ Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Clean docs folder
         run: cargo clean --doc
       - name: Build docs
