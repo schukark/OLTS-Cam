@@ -87,12 +87,7 @@ jobs:
       - name: Configure cache
         uses: Swatinem/rust-cache@v2
       - name: Cargo test
-        run: cargo test --all-features --no-fail-fast
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-          RUSTDOCFLAGS: '-Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-      
+        run: RUST_TEST_THREADS=1 cargo test --all-features --no-fail-fast -- --test-threads=1
       - name: Gather coverage data
         id: coverage
         uses: actions-rs/grcov@v0.1
