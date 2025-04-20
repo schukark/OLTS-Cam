@@ -210,6 +210,7 @@ mod tests {
     use super::*;
     use anyhow::Result;
     use httpmock::prelude::*;
+    use serial_test::serial;
     use teloxide_tests::{MockBot, MockMessageText};
     use tokio::time::{timeout, Duration};
 
@@ -398,6 +399,7 @@ mod tests {
         use super::*;
 
         #[tokio::test]
+        #[serial]
         async fn test_incorrect_receiver() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -419,6 +421,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_erroneous_server() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -446,6 +449,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_incorrect_response() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -477,6 +481,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_correct() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -514,6 +519,7 @@ mod tests {
         use super::*;
 
         #[tokio::test]
+        #[serial]
         async fn test_incorrect_settings() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -537,6 +543,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_fail() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -568,6 +575,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_correct() -> Result<()> {
             let server = MockServer::start_async().await;
 
