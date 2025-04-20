@@ -218,6 +218,7 @@ mod tests {
         use super::*;
 
         #[tokio::test]
+        #[serial]
         async fn test_erroneous_server() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -242,6 +243,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_incorrect_base64() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -269,6 +271,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_correct() -> Result<()> {
             let image = "c2hvcnQ=";
 
@@ -303,6 +306,7 @@ mod tests {
         use super::*;
 
         #[tokio::test]
+        #[serial]
         async fn test_erroneous_server() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -330,6 +334,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_incorrect_base64() -> Result<()> {
             let server = MockServer::start_async().await;
 
@@ -360,6 +365,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[serial]
         async fn test_correct() -> Result<()> {
             let image = "c2hvcnQ=";
 
