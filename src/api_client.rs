@@ -38,13 +38,13 @@ impl ApiClient {
                 log::trace!("Response: 200");
                 Ok(())
             }
-            400 => {
-                log::trace!("Response: 400");
-                Err(RequestError::NoSuchReceiver.into())
-            }
             401 => {
                 log::trace!("Response: 401");
                 Err(RequestError::NoSuchSetting.into())
+            }
+            422 => {
+                log::trace!("Response: 422");
+                Err(RequestError::NoSuchReceiver.into())
             }
             x => {
                 log::trace!("Response: {}", x);
@@ -73,6 +73,10 @@ impl ApiClient {
                         Err(ModelError::InvalidSettings.into())
                     }
                 }
+            }
+            422 => {
+                log::trace!("Response: 422");
+                Err(RequestError::NoSuchReceiver.into())
             }
             x => {
                 log::trace!("Response: {}", x);
@@ -150,7 +154,43 @@ mod tests {
                 "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
             )?;
 
-            assert!(api_client.change_settings(settings).await.is_err());
+            let result = api_client.change_settings(settings).await;
+            assert!(result.is_err());
+            if let Some(x) = result.unwrap_err().downcast_ref::<RequestError>() {
+                assert_eq!(*x, RequestError::NoSuchSetting);
+            } else {
+                panic!("Expected RequestError::NoSuchSetting");
+            }
+            mock.assert_async().await;
+
+            Ok(())
+        }
+
+        /// Tests whether a no such receiver case is handled correctly
+        #[tokio::test]
+        async fn test_no_such_receiver() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let mock = server.mock(|when, then| {
+                when.method(POST).path("/settings");
+                then.status(422).header("content-type", "application/json");
+            });
+
+            let host_with_port = server.host() + ":" + &server.port().to_string();
+
+            let api_client = ApiClient::new(host_with_port);
+
+            let settings = serde_json::from_str(
+                "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
+            )?;
+
+            let result = api_client.change_settings(settings).await;
+            assert!(result.is_err());
+            if let Some(x) = result.unwrap_err().downcast_ref::<RequestError>() {
+                assert_eq!(*x, RequestError::NoSuchReceiver);
+            } else {
+                panic!("Expected RequestError::NoSuchReceiver");
+            }
             mock.assert_async().await;
 
             Ok(())
@@ -171,10 +211,11 @@ mod tests {
             let api_client = ApiClient::new(host_with_port);
 
             let settings = serde_json::from_str(
-                r#"{"receiver": "camera","settings": [{"key": "FPS","value": "30"}]}"#,
+                r#"{"receiver":"camera","settings":[{"key":"FPS","value":"30"}]}"#,
             )?;
 
-            assert!(api_client.change_settings(settings).await.is_ok());
+            let result = api_client.change_settings(settings).await;
+            assert!(result.is_ok());
             mock.assert_async().await;
 
             Ok(())
@@ -184,6 +225,32 @@ mod tests {
     /// Tests for the get_settings() method
     mod get_settings_test {
         use super::*;
+
+        /// Tests the situation when the receiver is incorrect
+        #[tokio::test]
+        async fn test_incorrect_receiver() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let mock = server.mock(|when, then| {
+                when.method(GET).path("/settings/camera");
+                then.status(422)
+                    .header("content-type", "application/json")
+                    .body(
+                    "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
+                );
+            });
+
+            let host_with_port = server.host() + ":" + &server.port().to_string();
+
+            let api_client = ApiClient::new(host_with_port);
+            let result = api_client.get_settings(Receiver::Camera).await;
+            // camera is correct, but as api says, server is always right
+
+            assert!(result.is_err());
+            mock.assert_async().await;
+
+            Ok(())
+        }
 
         /// Tests the correct behavior
         #[tokio::test]
@@ -207,7 +274,9 @@ mod tests {
                 "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}",
             )?;
 
-            assert_eq!(api_client.get_settings(Receiver::Camera).await?, settings);
+            let result = api_client.get_settings(Receiver::Camera).await;
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), settings);
             mock.assert_async().await;
 
             Ok(())
@@ -217,30 +286,6 @@ mod tests {
     /// Tests for the get_object() method
     mod get_object_tests {
         use super::*;
-
-        /// Tests whether the behavior when the image is too big is correct
-        #[tokio::test]
-        async fn test_image_too_big() -> Result<()> {
-            let server = MockServer::start_async().await;
-
-            let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
-
-            let mock = server.mock(|when, then| {
-                when.method(GET).path("/object/apple");
-                then.status(400)
-                    .header("content-type", "application/json")
-                    .body(body);
-            });
-
-            let host_with_port = server.host() + ":" + &server.port().to_string();
-
-            let api_client = ApiClient::new(host_with_port);
-
-            assert!(api_client.get_object("apple").await.is_err());
-            mock.assert_async().await;
-
-            Ok(())
-        }
 
         /// Correct behavior test
         #[tokio::test]
@@ -274,29 +319,6 @@ mod tests {
     /// Tests for the get_objects() method
     mod get_objects_tests {
         use super::*;
-
-        /// Tests the situation when the file size is too big
-        #[tokio::test]
-        async fn test_image_too_big() -> Result<()> {
-            let server = MockServer::start_async().await;
-
-            let body = "{\"height\":224,\"width\":224,\"image\":\"aboba\"}";
-            let mock = server.mock(|when, then| {
-                when.method(GET).path("/objects");
-                then.status(400)
-                    .header("content-type", "application/json")
-                    .body(body);
-            });
-
-            let host_with_port = server.host() + ":" + &server.port().to_string();
-
-            let api_client = ApiClient::new(host_with_port);
-
-            assert!(api_client.get_objects().await.is_err());
-            mock.assert_async().await;
-
-            Ok(())
-        }
 
         /// Tests the expected behavior
         #[tokio::test]

@@ -3,7 +3,7 @@
 use thiserror::Error;
 
 /// Inner error type for models parsing
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum ModelError {
     /// Invalid reciever type (if it is not one of the preconfigured ones)
     #[error("")]
@@ -15,7 +15,7 @@ pub enum ModelError {
 }
 
 /// Inner error type for requests
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum RequestError {
     /// No such setting
     #[error("No such setting")]
