@@ -12,7 +12,7 @@ use futures::future::join_all;
 mod bot;
 mod errors;
 mod models;
-mod requests;
+mod api_client;
 
 /// The main function that runs the bot
 #[tokio::main]

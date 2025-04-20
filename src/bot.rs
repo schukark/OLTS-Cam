@@ -1,5 +1,5 @@
 //! This module provides all the functionality of the bot according to the task
-use crate::{errors::ModelError, requests::*};
+use crate::{api_client::*, errors::ModelError};
 
 use teloxide::{
     dispatching::UpdateHandler, prelude::*, types::InputFile, utils::command::BotCommands,
