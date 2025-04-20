@@ -41,12 +41,22 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          override: true
       - name: Configure cache
         uses: Swatinem/rust-cache@v2
       - id: coverage
         uses: bewee/rustdoc-coverage-action@v1
-      - run: echo ${{ steps.coverage.outputs.documented }}
-      - run: echo ${{steps.coverage.outputs.table}}
+        with:
+          percentage-format: 0%
+      - name: Create Awesome Badge
+        uses: schneegans/dynamic-badges-action@v1.1.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 1b10014d0019c22cc1984bc8a7be7152
+          filename: doc-coverage.json
+          label: doc cov
+          message: ${{ steps.coverage.outputs.documented }}
+          color: orange
 
   docs:
     name: Generate pages
@@ -58,6 +68,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          override: true
       - name: Configure cache
         uses: Swatinem/rust-cache@v2
       - name: Setup pages
