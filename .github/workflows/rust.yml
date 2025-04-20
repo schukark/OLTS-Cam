@@ -173,7 +173,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           include-hidden-files: true
-          path: target/doc
+          path: target/doc/camera_detection_bot
 
   deploy:
     name: Deploy Pages
