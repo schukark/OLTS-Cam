@@ -115,6 +115,7 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Generate code coverage
+        id: coverage
         run: |
           cargo +nightly tarpaulin \
             --verbose \
@@ -123,6 +124,10 @@ jobs:
             --timeout 120 \
             --out Lcov \
             --output-dir coverage
+          # Extract coverage percentage (assumes last line contains 'Coverage: XX.XX%')
+          COVERAGE=$(grep 'Coverage' coverage/lcov.info || echo "Coverage: 0%")
+          PERCENT=${COVERAGE#* } 
+          echo "::set-output name=covered::${PERCENT}"
       - name: Upload to Coveralls
         uses: coverallsapp/github-action@v2.3.6
         with:

@@ -1,0 +1,3 @@
+[![Rust](https://github.com/schukark/OLTS-Cam/actions/workflows/rust.yml/badge.svg)](https://github.com/schukark/OLTS-Cam/actions/workflows/rust.yml)
+[![doc coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fschukark%2F1b10014d0019c22cc1984bc8a7be7152%2Fraw%2F3de291300f3d36ee7956596666a10d667ab31971%2Fdoc-coverage.json)](https://github.com/schukark/OLTS-Cam/)
+[![test coverage](https://coveralls.io/repos/github/schukark/OLTS-Cam/badge.svg?branch=telegram-bot)](https://coveralls.io/github/schukark/OLTS-Cam?branch=telegram-bot)
