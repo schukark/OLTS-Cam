@@ -95,13 +95,13 @@ jobs:
         env:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: >-
-            -Zinstrument-coverage
+            -Z instrument-coverage
             -Ccodegen-units=1
             -Copt-level=0
             -Clink-dead-code
             -Coverflow-checks=off
           RUSTDOCFLAGS: >-
-            -Zinstrument-coverage
+            -Z instrument-coverage
             -Ccodegen-units=1
             -Copt-level=0
             -Clink-dead-code
@@ -196,3 +196,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: List uploaded artifact contents
+        run: |
+          ls -R target/doc
