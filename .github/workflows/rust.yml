@@ -134,7 +134,7 @@ jobs:
           RUSTDOCFLAGS: '-C instrument-coverage'
           LLVM_PROFILE_FILE: 'coveralls-instrumentation-%p-%m.profraw'
       - name: grcov
-        run: grcov . --binary-path ./target/debug --ignore="/*" -s ./src -t lcov --branch --ignore-not-existing -o lcov.info
+        run: ls -R . && grcov . --binary-path ./target/debug --ignore="/*" -s ./src -t lcov --branch --ignore-not-existing -o lcov.info
       - name: Upload to Coveralls
         uses: coverallsapp/github-action@v2.3.6
         with:
