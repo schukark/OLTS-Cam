@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    name: Build & test
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,13 +26,12 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Build
         run: cargo build --verbose
-      - name: Run formatter
+      - name: Run Clippy
         run: cargo clippy --all-targets --all-features
-      - name: Run tests
-        run: cargo test --verbose
 
-  print_doc_coverage:
-    name: Print documentation coverage
+  gen_doc_coverage:
+    name: Generate documentation coverage badge
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -48,15 +47,83 @@ jobs:
         uses: bewee/rustdoc-coverage-action@v1
         with:
           percentage-format: 0%
-      - name: Create Awesome Badge
+      - name: Create Doc Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 1b10014d0019c22cc1984bc8a7be7152
           filename: doc-coverage.json
-          label: doc cov
+          label: doc coverage
           message: ${{ steps.coverage.outputs.documented }}
           color: orange
+
+  print_test_coverage:
+    name: Generate test coverage badge
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - name: Configure cache
+        uses: Swatinem/rust-cache@v2
+      - name: Cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --no-fail-fast
+        env:
+          CARGO_INCREMENTAL: '0'
+          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+          RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+      
+      - name: Gather coverage data
+        id: coverage
+        uses: actions-rs/grcov@v0.1
+      - name: Render HTML coverage report & prepare badge data
+        run: |
+          # 1) Render HTML
+          grcov . \
+            --binary-path ./target/debug/ \
+            --source-dir . \
+            --branch \
+            --ignore-not-existing \
+            -t html \
+            -o coverage/html
+  
+          # 2) Compute overall coverage as an integer percentage:
+          COVERAGE=$(grcov . \
+            --binary-path ./target/debug/ \
+            --source-dir . \
+            --branch \
+            --ignore-not-existing \
+            -t cobertura \
+            -o coverage/cobertura.xml \
+            && xmlstarlet sel \
+                -t \
+                -v "round( sum(//coverage/@line-rate) div count(//coverage/@line-rate) * 100 )" \
+                coverage/cobertura.xml)
+  
+          # 3) Emit a Shields.io–style JSON endpoint:
+          mkdir -p coverage/json
+          cat <<EOF > coverage/json/coverage.json
+          {
+            "schemaVersion": 1,
+            "label": "coverage",
+            "message": "${COVERAGE}%"
+          }
+          EOF
+  
+      - name: Deploy coverage site & badge data to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: coverage
 
   docs:
     name: Generate pages
