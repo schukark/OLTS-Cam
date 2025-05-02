@@ -173,17 +173,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
 
             let settings = format!("{{\"receiver\":\"{rcv}\", \"settings\":[{{\"key\":\"{name}\",\"value\":\"{value}\"}}]}}");
 
-            let settings_formatted = serde_json::from_str(&settings);
-
-            if settings_formatted.is_err() {
-                log::debug!("Settings formatted incorrectly");
-                bot.send_message(msg.chat.id, "Incorrectly formatted settings")
-                    .await?;
-
-                return Ok(());
-            }
-
-            let settings_formatted = settings_formatted.unwrap();
+            let settings_formatted = serde_json::from_str(&settings).unwrap();
 
             let result = api.change_settings(settings_formatted).await;
             match result {
