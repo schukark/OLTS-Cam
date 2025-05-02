@@ -1,5 +1,5 @@
 //! This module provides all the functionality of the bot according to the task
-use crate::{api_client::*, errors::ModelError};
+use crate::{api_client::*, errors::ModelError, models::Receiver};
 
 use teloxide::{
     dispatching::UpdateHandler, prelude::*, types::InputFile, utils::command::BotCommands,
@@ -154,6 +154,20 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
             }
 
             let rcv = settings_split[0].to_owned();
+
+            let rcv_new: Result<Receiver, _> = rcv.clone().try_into();
+
+            if rcv_new.is_err() {
+                log::debug!("Receiver formatted incorrectly");
+                bot.send_message(
+                    msg.chat.id,
+                    "Reciever formatted incorrectly, should be one of: camera, db, fs",
+                )
+                .await?;
+
+                return Ok(());
+            }
+
             let name = settings_split[1].to_owned();
             let value = settings_split[2].to_owned();
 
