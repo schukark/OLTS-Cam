@@ -144,6 +144,21 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
         Command::ChangeSettings(settings) => {
             log::info!("Asked to change the settings");
 
+            let settings_split = settings.split_whitespace().collect::<Vec<_>>();
+            if settings_split.len() != 3 {
+                log::debug!("Settings formatted incorrectly");
+                bot.send_message(msg.chat.id, "Incorrectly formatted settings")
+                    .await?;
+
+                return Ok(());
+            }
+
+            let rcv = settings_split[0].to_owned();
+            let name = settings_split[1].to_owned();
+            let value = settings_split[2].to_owned();
+
+            let settings = format!("{{\"receiver\":\"{rcv}\", \"settings\":[{{\"key\":\"{name}\",\"value\":\"{value}\"}}]}}");
+
             let settings_formatted = serde_json::from_str(&settings);
 
             if settings_formatted.is_err() {
@@ -532,9 +547,7 @@ mod tests {
             let server = MockServer::start_async().await;
 
             let api = ApiClient::new(server.address().to_string());
-            let body =
-                "{\"receiver\":\"camera\", \"settings_incorrect\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
-
+            let body = "value value value value";
             let bot = MockBot::new(
                 MockMessageText::new().text(format!("/changesettings {body}")),
                 handler_tree(),
@@ -555,8 +568,7 @@ mod tests {
         async fn test_fail() -> Result<()> {
             let server = MockServer::start_async().await;
 
-            let body =
-                "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
+            let body = "camera FPS 30";
             let mock = server.mock(|when, then| {
                 when.method(POST).path("/settings");
                 then.status(421)
@@ -587,8 +599,7 @@ mod tests {
         async fn test_correct() -> Result<()> {
             let server = MockServer::start_async().await;
 
-            let body =
-                "{\"receiver\":\"camera\",\"settings\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
+            let body = "camera FPS 30";
             let mock = server.mock(|when, then| {
                 when.method(POST).path("/settings");
                 then.status(200)
