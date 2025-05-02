@@ -5,7 +5,7 @@ use thiserror::Error;
 /// Inner error type for models parsing
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum ModelError {
-    /// Invalid reciever type (if it is not one of the preconfigured ones)
+    /// Invalid receiver type (if it is not one of the preconfigured ones)
     #[error("")]
     InvalidReceiver(String),
 
@@ -22,7 +22,7 @@ pub enum RequestError {
     NoSuchSetting,
 
     /// No such model
-    #[error("No such reciever")]
+    #[error("No such receiver")]
     NoSuchReceiver,
 
     /// Unknown error

@@ -161,7 +161,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
                 log::debug!("Receiver formatted incorrectly");
                 bot.send_message(
                     msg.chat.id,
-                    "Reciever formatted incorrectly, should be one of: camera, db, fs",
+                    "Receiver formatted incorrectly, should be one of: camera, db, fs",
                 )
                 .await?;
 
