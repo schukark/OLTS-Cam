@@ -453,14 +453,14 @@ mod tests {
             let server = MockServer::start_async().await;
 
             let mock = server.mock(|when, then| {
-                when.method(GET).path("/settings/camera");
+                when.method(GET).path("/settings/db");
                 then.status(421).header("content-type", "application/json");
             });
 
             let api = ApiClient::new(server.address().to_string());
 
             let bot = MockBot::new(
-                MockMessageText::new().text("/getsettings camera"),
+                MockMessageText::new().text("/getsettings db"),
                 handler_tree(),
             );
             bot.dependencies(dptree::deps![api]);
@@ -596,7 +596,7 @@ mod tests {
         async fn test_fail() -> Result<()> {
             let server = MockServer::start_async().await;
 
-            let body = "camera FPS 30";
+            let body = "fs limit 30G";
             let mock = server.mock(|when, then| {
                 when.method(POST).path("/settings");
                 then.status(421)
