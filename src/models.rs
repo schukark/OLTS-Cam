@@ -34,7 +34,7 @@ impl Display for Receiver {
             Receiver::Fs => "fs",
         };
 
-        write!(f, "{}", name)
+        write!(f, "{name}")
     }
 }
 

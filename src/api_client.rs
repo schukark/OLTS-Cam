@@ -47,7 +47,7 @@ impl ApiClient {
                 Err(RequestError::NoSuchReceiver.into())
             }
             x => {
-                log::trace!("Response: {}", x);
+                log::trace!("Response: {x}");
                 Err(RequestError::UnknownError.into())
             }
         }
@@ -69,7 +69,7 @@ impl ApiClient {
                         Ok(settings)
                     }
                     Err(e) => {
-                        log::trace!("Error parsing settings: {}", e);
+                        log::trace!("Error parsing settings: {e}");
                         Err(ModelError::InvalidSettings.into())
                     }
                 }
@@ -79,7 +79,7 @@ impl ApiClient {
                 Err(RequestError::NoSuchReceiver.into())
             }
             x => {
-                log::trace!("Response: {}", x);
+                log::trace!("Response: {x}");
                 Err(RequestError::UnknownError.into())
             }
         }
@@ -98,7 +98,7 @@ impl ApiClient {
                 Ok(response.json().await?)
             }
             x => {
-                log::trace!("Response: {}", x);
+                log::trace!("Response: {x}");
                 Err(RequestError::UnknownError.into())
             }
         }
@@ -117,7 +117,7 @@ impl ApiClient {
                 Ok(response.json().await?)
             }
             x => {
-                log::trace!("Response: {}", x);
+                log::trace!("Response: {x}");
                 Err(RequestError::UnknownError.into())
             }
         }

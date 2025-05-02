@@ -84,7 +84,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
             }
         }
         Command::WhereIs(ref object_name) => {
-            log::info!("Asked where an object {} is", object_name);
+            log::info!("Asked where an object {object_name} is");
 
             let object = api.get_object(object_name).await;
 
@@ -536,7 +536,7 @@ mod tests {
                 "{\"receiver\":\"camera\", \"settings_incorrect\":[{\"key\":\"FPS\",\"value\":\"30\"}]}";
 
             let bot = MockBot::new(
-                MockMessageText::new().text(format!("/changesettings {}", body)),
+                MockMessageText::new().text(format!("/changesettings {body}")),
                 handler_tree(),
             );
             bot.dependencies(dptree::deps![api]);
@@ -567,7 +567,7 @@ mod tests {
             let api = ApiClient::new(server.address().to_string());
 
             let bot = MockBot::new(
-                MockMessageText::new().text(format!("/changesettings {}", body)),
+                MockMessageText::new().text(format!("/changesettings {body}")),
                 handler_tree(),
             );
             bot.dependencies(dptree::deps![api]);
@@ -599,7 +599,7 @@ mod tests {
             let api = ApiClient::new(server.address().to_string());
 
             let bot = MockBot::new(
-                MockMessageText::new().text(format!("/changesettings {}", body)),
+                MockMessageText::new().text(format!("/changesettings {body}")),
                 handler_tree(),
             );
             bot.dependencies(dptree::deps![api]);
