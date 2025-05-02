@@ -274,7 +274,7 @@ mod tests {
                 "{\"receiver\":\"fs\",\"settings\":[{\"key\":\"limit\",\"value\":\"30G\"}]}",
             )?;
 
-            let result = api_client.get_settings(Receiver::Camera).await;
+            let result = api_client.get_settings(Receiver::Fs).await;
             assert!(result.is_ok());
             assert_eq!(result.unwrap(), settings);
             mock.assert_async().await;
