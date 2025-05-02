@@ -569,6 +569,30 @@ mod tests {
 
         #[tokio::test]
         #[serial]
+        async fn test_incorrect_receiver() -> Result<()> {
+            let server = MockServer::start_async().await;
+
+            let api = ApiClient::new(server.address().to_string());
+            let body = "aboba FPS 30";
+            let bot = MockBot::new(
+                MockMessageText::new().text(format!("/changesettings {body}")),
+                handler_tree(),
+            );
+            bot.dependencies(dptree::deps![api]);
+
+            timeout(
+                Duration::from_secs(1),
+                bot.dispatch_and_check_last_text(
+                    "Receiver formatted incorrectly, should be one of: camera, db, fs",
+                ),
+            )
+            .await?;
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        #[serial]
         async fn test_fail() -> Result<()> {
             let server = MockServer::start_async().await;
 
