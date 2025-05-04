@@ -18,6 +18,7 @@ class Settings(BaseModel):
     receiver: Receiver
     settings: List[SettingsInner]
 
+
 class ObjectPhoto(BaseModel):
     height: int
     width: int
