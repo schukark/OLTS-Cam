@@ -2,7 +2,6 @@
 
 use crate::errors::ModelError;
 use serde::{Deserialize, Serialize};
-use serde_json::to_string_pretty;
 use std::fmt::Display;
 
 /// A simple wrapper for (key, value) pairs in settings
@@ -70,12 +69,16 @@ impl Display for Settings {
             Receiver::Fs => "📁",
         };
 
-        write!(
-            f,
-            "Settings for {} are: {}",
-            rcv_emoji,
-            to_string_pretty(self).unwrap()
-        )
+        let mut settings_str = String::from("");
+
+        for row in &self.settings {
+            let key = row.key.clone();
+            let value = row.value.clone();
+
+            settings_str += &format!("{key}: {value}\n");
+        }
+
+        write!(f, "Settings for {} are:\n{}", rcv_emoji, settings_str)
     }
 }
 

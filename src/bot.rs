@@ -20,7 +20,7 @@ fn convert_to_image(base64_image: &str) -> Result<InputFile, DecodeError> {
     Ok(InputFile::memory(BASE64_STANDARD.decode(base64_image)?))
 }
 
-/// Command implementation for the bot (teloxide::utils::command::BotCommands)
+/// Command list for the bot
 #[derive(Clone, BotCommands)]
 #[command(
     rename_rule = "lowercase",
@@ -114,8 +114,11 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
 
             if rcv.is_err() {
                 log::debug!("No such receiver");
-                bot.send_message(msg.chat.id, "Incorrect receiver specified")
-                    .await?;
+                bot.send_message(
+                    msg.chat.id,
+                    "Incorrect receiver specified, should be one of 'camera', 'db' or 'fs'",
+                )
+                .await?;
 
                 return Ok(());
             }
@@ -147,7 +150,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
             let settings_split = settings.split_whitespace().collect::<Vec<_>>();
             if settings_split.len() != 3 {
                 log::debug!("Settings formatted incorrectly");
-                bot.send_message(msg.chat.id, "Incorrectly formatted settings")
+                bot.send_message(msg.chat.id, "Incorrectly formatted settings, should be <receiver> <setting_name> <setting_value>")
                     .await?;
 
                 return Ok(());
@@ -440,7 +443,9 @@ mod tests {
 
             timeout(
                 Duration::from_secs(1),
-                bot.dispatch_and_check_last_text("Incorrect receiver specified"),
+                bot.dispatch_and_check_last_text(
+                    "Incorrect receiver specified, should be one of 'camera', 'db' or 'fs'",
+                ),
             )
             .await?;
 
@@ -560,7 +565,7 @@ mod tests {
 
             timeout(
                 Duration::from_secs(1),
-                bot.dispatch_and_check_last_text("Incorrectly formatted settings"),
+                bot.dispatch_and_check_last_text("Incorrectly formatted settings, should be <receiver> <setting_name> <setting_value>"),
             )
             .await?;
 
