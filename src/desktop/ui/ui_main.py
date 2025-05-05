@@ -26,7 +26,7 @@ class Ui_MainWindow(object):
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(1600, 900)
         MainWindow.setMinimumSize(QSize(800, 600))
-        MainWindow.setMaximumSize(QSize(1920, 1080))
+        #MainWindow.setMaximumSize(QSize(1920, 1080))
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -44,11 +44,11 @@ class Ui_MainWindow(object):
         self.homePage.setObjectName(u"homePage")
         self.verticalLayout_2 = QVBoxLayout(self.homePage)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.label = QLabel(self.homePage)
-        self.label.setObjectName(u"label")
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #self.label = QLabel(self.homePage)
+        #self.label.setObjectName(u"label")
+        #self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.verticalLayout_2.addWidget(self.label)
+        #self.verticalLayout_2.addWidget(self.label)
 
         self.stackedWidget.addWidget(self.homePage)
         self.cameraSettingsPage = QWidget()
@@ -195,7 +195,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0440\u043e \u043f\u043e\u0436\u0430\u043b\u043e\u0432\u0430\u0442\u044c \u0432 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435!", None))
+        #self.label.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0440\u043e \u043f\u043e\u0436\u0430\u043b\u043e\u0432\u0430\u0442\u044c \u0432 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435!", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043a\u0430\u043c\u0435\u0440\u044b \u0438 \u0444\u0430\u0439\u043b\u043e\u0432\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c\u044b", None))
         self.cameraIPInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 IP \u043a\u0430\u043c\u0435\u0440\u044b", None))
         self.cameraPortInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u043e\u0440\u0442 \u043a\u0430\u043c\u0435\u0440\u044b", None))
