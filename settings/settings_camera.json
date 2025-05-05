@@ -1,0 +1,9 @@
+{
+    "receiver": "camera",
+    "settings": [
+        {
+            "key": "FPS",
+            "value": "15"
+        }
+    ]
+}

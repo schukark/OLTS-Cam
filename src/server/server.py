@@ -1,9 +1,10 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from fastapi import FastAPI, Response
 from models import Settings, ObjectPhoto, Receiver
 from pydantic_core import from_json
 import uvicorn
+import os
 
 app = FastAPI()
 
@@ -11,17 +12,15 @@ app = FastAPI()
 @app.get("/settings/{rcv}")
 async def get_settings(rcv: Receiver, response: Response) \
         -> Optional[Settings]:
-    with open("settings.json", "r") as settings_file:
-        settings: Dict[str, List[Any]] = from_json(
-            "\n".join(settings_file.readlines()))
-    result = list(filter(lambda x: check_rcv_type(x, rcv),
-                         settings["settings"]))
-
-    if len(result) == 0:
+    if not os.path.exists(f"settings/settings_{rcv}.json"):
         response.status_code = 422
         return None
 
-    return result[0]
+    with open(f"settings/settings_{rcv}.json", "r") as settings_file:
+        settings: Dict[Any, Any] = from_json(
+            "\n".join(settings_file.readlines()))
+
+    return settings
 
 
 def check_rcv_type(x: Dict[str, Any], rcv: Receiver) -> bool:
@@ -44,35 +43,30 @@ async def get_objects():
 
 @app.post("/settings/")
 async def change_settings(new_settings: Settings, response: Response):
-    with open("settings.json", "r") as settings_file:
-        cur_settings = from_json(
+    with open(f"settings/settings_{new_settings.receiver}.json", "r") \
+            as settings_file:
+        cur_settings: Dict[Any, Any] = from_json(
             "\n".join(settings_file.readlines()))
 
-    found_rcv = False
+    name_set = list(map(lambda x: x["key"], cur_settings["settings"]))
+    print(name_set)
 
-    for json_row in cur_settings["settings"]:
-        if json_row["receiver"] != new_settings.receiver:
-            continue
+    for new_setting_pair in new_settings.settings:
+        if new_setting_pair.key not in name_set:
+            response.status_code = 422
+            return None
 
-        found_rcv = True
-        for set_row in new_settings.settings:
-            key = set_row.key
-            value = set_row.value
+        setting_index = list(filter(
+            lambda i: cur_settings["settings"][i]["key"] ==
+            new_setting_pair.key,
+            range(len(cur_settings["settings"])))
+        )[0]
 
-            if key not in list(map(lambda x: x["key"], json_row["settings"])):
-                response.status_code = 401
-                return
+        cur_settings["settings"][setting_index]["value"] = \
+            new_setting_pair.value
 
-            for row in json_row["settings"]:
-                if row["key"] == key:
-                    row["value"] = value
-                    break
-
-    if not found_rcv:
-        response.status_code = 422
-        return
-
-    with open("settings.json", "w") as settings_file:
+    with open(f"settings/settings_{new_settings.receiver}.json", "w") \
+            as settings_file:
         settings_file.write(json.dumps(cur_settings))
 
 

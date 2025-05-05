@@ -1,0 +1,9 @@
+{
+    "receiver": "fs",
+    "settings": [
+        {
+            "key": "space_limit",
+            "value": "20G"
+        }
+    ]
+}
