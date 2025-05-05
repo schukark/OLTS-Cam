@@ -21,7 +21,7 @@ async def get_settings(rcv: Receiver, response: Response) \
         settings: Dict[Any, Any] = from_json(
             "\n".join(settings_file.readlines()))
 
-    return settings
+    return Settings(**settings)
 
 
 def check_rcv_type(x: Dict[str, Any], rcv: Receiver) -> bool:
@@ -57,10 +57,10 @@ async def change_settings(new_settings: Settings, response: Response):
             response.status_code = 422
             return None
 
-        setting_index = list(filter(
+        setting_index: int = list(filter(  # type: ignore
             lambda i: cur_settings["settings"][i]["key"] ==
             new_setting_pair.key,
-            range(len(cur_settings["settings"])))
+            range(len(cur_settings["settings"])))  # type: ignore
         )[0]
 
         cur_settings["settings"][setting_index]["value"] = \
