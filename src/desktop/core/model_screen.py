@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QVBoxLayout, QLabel
 
 class ModelScreen:
-    def __init__(self, parent_widget):
-        self.parent = parent_widget
+    def __init__(self, ui):
+        self.ui = ui
         self.setup_ui()
         
     def setup_ui(self):

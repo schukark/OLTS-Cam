@@ -7,8 +7,8 @@ import os
 from core.dialogs.license_dialog import LicenseDialog
 
 class HomeScreen:
-    def __init__(self, parent_widget):
-        self.parent = parent_widget
+    def __init__(self, parent):
+        self.parent = parent
         self.setup_ui()
         
     def setup_ui(self):

@@ -10,13 +10,14 @@ class ApplicationWindow(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.cur_screen = 'home'
         
         # Инициализация экранов
         self.screens = {
             'home': HomeScreen(self.ui.homePage),
-            'camera': CameraScreen(self.ui.cameraSettingsPage),
-            'model': ModelScreen(self.ui.modelSettingsPage),
-            'video': VideoScreen(self.ui.videoPlaybackPage)
+            'camera': CameraScreen(self.ui),
+            'model': ModelScreen(self.ui),
+            'video': VideoScreen(self.ui)
         }
         
         # Подключение кнопок навигации
@@ -36,4 +37,11 @@ class ApplicationWindow(QMainWindow):
             'model': self.ui.modelSettingsPage,
             'video': self.ui.videoPlaybackPage
         }
+        
+        if (self.cur_screen == "camera"):
+            self.screens['camera'].load_settings()
+            self.screens['camera'].clear_highlight()
+        
         self.ui.stackedWidget.setCurrentWidget(screen_map[screen_name])
+        self.cur_screen = screen_name
+        
