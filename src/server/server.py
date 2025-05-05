@@ -75,4 +75,10 @@ async def change_settings(new_settings: Settings, response: Response):
     with open("settings.json", "w") as settings_file:
         settings_file.write(json.dumps(cur_settings))
 
-uvicorn.run(app, host="127.0.0.1", port=19841)
+
+def run_server():
+    uvicorn.run(app, host="127.0.0.1", port=19841)
+
+
+if __name__ == "__main__":
+    run_server()
