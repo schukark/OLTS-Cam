@@ -78,7 +78,7 @@ impl Display for Settings {
             settings_str += &format!("{key}: {value}\n");
         }
 
-        write!(f, "Settings for {} are:\n{}", rcv_emoji, settings_str)
+        write!(f, "Settings for {rcv_emoji} are:\n{settings_str}")
     }
 }
 
