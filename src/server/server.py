@@ -1,10 +1,11 @@
 import json
-from typing import Any, Dict, Optional
-from fastapi import FastAPI, Response
-from models import Settings, ObjectPhoto, Receiver
-from pydantic_core import from_json
-import uvicorn
 import os
+from typing import Any, Dict, Optional
+
+import uvicorn
+from fastapi import FastAPI, Response
+from models import ObjectPhoto, Receiver, Settings
+from pydantic_core import from_json
 
 app = FastAPI()
 
