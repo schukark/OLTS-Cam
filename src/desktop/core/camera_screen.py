@@ -6,8 +6,7 @@ from typing import Dict, Tuple, Optional
 from PySide6.QtWidgets import QMessageBox
 
 class CameraSettingsValidator:
-    @staticmethod
-    def validate_ip(ip: str) -> Tuple[bool, str]:
+    def validate_ip(self, ip: str) -> Tuple[bool, str]:
         """Валидация IP-адреса с обработкой всех возможных ошибок"""
         if not ip:
             return False, "IP-адрес не может быть пустым"
@@ -35,8 +34,7 @@ class CameraSettingsValidator:
         
         return True, ""
 
-    @staticmethod
-    def validate_port(port: str) -> Tuple[bool, str]:
+    def validate_port(self, port: str) -> Tuple[bool, str]:
         """Валидация порта"""
         if not port:
             return False, "Порт не может быть пустым"
@@ -50,8 +48,7 @@ class CameraSettingsValidator:
         
         return True, ""
 
-    @staticmethod
-    def validate_rtsp_url(url: str) -> Tuple[bool, str]:
+    def validate_rtsp_url(self, url: str) -> Tuple[bool, str]:
         """Валидация RTSP URL"""
         if not url:
             return False, "RTSP URL не может быть пустым"
@@ -62,8 +59,7 @@ class CameraSettingsValidator:
         
         return True, ""
 
-    @staticmethod
-    def validate_login(login: str) -> Tuple[bool, str]:
+    def validate_login(self, login: str) -> Tuple[bool, str]:
         """Валидация логина"""
         if not login:
             return False, "Логин не может быть пустым"
