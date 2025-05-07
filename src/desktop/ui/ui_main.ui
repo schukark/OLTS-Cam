@@ -353,6 +353,12 @@
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QLabel" name="label_4">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>50</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <pointsize>14</pointsize>
@@ -368,12 +374,9 @@
          </widget>
         </item>
         <item>
-         <widget class="QVideoWidget" name="videoWidget" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <widget class="QLabel" name="video_label">
+          <property name="text">
+           <string>Загрузка видео</string>
           </property>
          </widget>
         </item>
@@ -468,13 +471,6 @@
    </layout>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QVideoWidget</class>
-   <extends>QWidget</extends>
-   <header>qvideowidget.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
