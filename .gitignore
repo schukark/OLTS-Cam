@@ -3,3 +3,4 @@ __pycache__
 .vscode
 settings
 camera
+data_db
