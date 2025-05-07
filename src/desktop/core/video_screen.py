@@ -21,7 +21,8 @@ class VideoScreen:
         self.is_running = False
         self.setup_ui()
         self.setup_connections()
-        self.start_opencv_capture()
+        thread2 = Thread(target=self.start_opencv_capture, daemon=True)
+        thread2.start()
     
     def setup_ui(self):
         """Инициализация интерфейса с исправлениями для правильного отображения"""
