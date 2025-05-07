@@ -1,9 +1,0 @@
-{
-    "receiver": "db",
-    "settings": [
-        {
-            "key": "port",
-            "value": "5432"
-        }
-    ]
-}
