@@ -21,7 +21,7 @@ class Record:
     def create(self, item: RecordItem) -> int:
         query = "INSERT INTO Records (VideoID, StartTime, EndTime, VideoPath) VALUES (?, ?, ?, ?)"
         cursor = self.connection.cursor()
-        cursor.execute(query, item)
+        cursor.execute(query, (item.VideoID, item.StartTime, item.EndTime, item.VideoPath))
         self.connection.commit()
         return cursor.lastrowid
 

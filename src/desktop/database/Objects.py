@@ -24,7 +24,7 @@ class Objects:
     def create(self, item: ObjectItem) -> int:
         query = "INSERT INTO Objects (Name, PositionCoord, ContID, RecordID) VALUES (?, ?, ?, ?)"
         cursor = self.connection.cursor()
-        cursor.execute(query, item)
+        cursor.execute(query, (item.Name, item.Time, item.PositionCoord, item.ContID, item.RecordID))
         self.connection.commit()
         return cursor.lastrowid
 

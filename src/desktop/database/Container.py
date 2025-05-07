@@ -17,10 +17,10 @@ class Container:
         self.connection.execute(query)
         self.connection.commit()
 
-    def create(self, name: str, position: Optional[str] = None, photo_path: Optional[str] = None) -> int:
+    def create(self, item: ContainerItem) -> int:
         query = "INSERT INTO Containers (Name, Position, PhotoPath) VALUES (?, ?, ?)"
         cursor = self.connection.cursor()
-        cursor.execute(query, (name, position, photo_path))
+        cursor.execute(query, (item.name, item.position, item.photo_path))
         self.connection.commit()
         return cursor.lastrowid
 
