@@ -51,7 +51,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="homePage">
        <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -375,8 +375,19 @@
         </item>
         <item>
          <widget class="QLabel" name="video_label">
+          <property name="font">
+           <font>
+            <pointsize>21</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Загрузка видео</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::TextFormat::AutoText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
          </widget>
         </item>

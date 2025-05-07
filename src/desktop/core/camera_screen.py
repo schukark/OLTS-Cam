@@ -66,10 +66,11 @@ class CameraSettingsValidator:
         return True, ""
 
 class CameraScreen:
-    SETTINGS_PATH = Path(__file__).parent.parent.parent / "settings" / "camera_settings.json"
+    SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "settings" / "camera_settings.json"
     
-    def __init__(self, ui):
+    def __init__(self, ui, window):
         self.ui = ui
+        self.window = window
         self.validator = CameraSettingsValidator()
         self.setup_connections()
         self.load_settings()
@@ -82,6 +83,9 @@ class CameraScreen:
             'rtsp_url': ''
         }
         
+        settings_path = Path(__file__).parent.parent.parent.parent / "settings"
+        settings_path.mkdir(parents=True, exist_ok=True)
+            
         if not self.SETTINGS_PATH.exists():
             with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
                 json.dump(default_settings, f, ensure_ascii=False, indent=4)
@@ -177,6 +181,7 @@ class CameraScreen:
         os.makedirs(self.SETTINGS_PATH.parent, exist_ok=True)
         with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
+        self.window.screens['video'].stop_capture()
 
     def load_settings(self):
         """Загружает настройки из файла"""
@@ -185,4 +190,5 @@ class CameraScreen:
                 with open(self.SETTINGS_PATH, 'r', encoding='utf-8') as f:
                     self.set_all_settings(json.load(f))
         except Exception as e:
-            QMessageBox.warning(None, "Ошибка", f"Не удалось загрузить настройки: {str(e)}")
+            #QMessageBox.warning(None, "Ошибка", f"Не удалось загрузить настройки: {str(e)}")
+            pass

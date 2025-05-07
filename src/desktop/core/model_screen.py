@@ -50,10 +50,11 @@ class ModelSettingsValidator:
 
 
 class ModelScreen:
-    SETTINGS_PATH = Path(__file__).parent.parent.parent / "settings" / "model_settings.json"
+    SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "settings" / "model_settings.json"
     
-    def __init__(self, ui):
+    def __init__(self, ui, window):
         self.ui = ui
+        self.window = window
         self.validator = ModelSettingsValidator()
         self.setup_connections()
         self.load_settings()
@@ -177,6 +178,7 @@ class ModelScreen:
         os.makedirs(self.SETTINGS_PATH.parent, exist_ok=True)
         with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
+        self.window.screens['video'].stop_capture()
 
     def load_settings(self):
         """Загружает настройки из файла"""

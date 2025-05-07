@@ -191,6 +191,11 @@ class Ui_MainWindow(object):
 
         self.video_label = QLabel(self.videoPlaybackPage)
         self.video_label.setObjectName(u"video_label")
+        font3 = QFont()
+        font3.setPointSize(21)
+        self.video_label.setFont(font3)
+        self.video_label.setTextFormat(Qt.TextFormat.AutoText)
+        self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_5.addWidget(self.video_label)
 
@@ -210,30 +215,30 @@ class Ui_MainWindow(object):
         self.homeButton = QPushButton(self.horizontalWidget)
         self.homeButton.setObjectName(u"homeButton")
         self.homeButton.setMinimumSize(QSize(0, 135))
-        font3 = QFont()
-        font3.setPointSize(15)
-        self.homeButton.setFont(font3)
+        font4 = QFont()
+        font4.setPointSize(15)
+        self.homeButton.setFont(font4)
 
         self.horizontalLayout.addWidget(self.homeButton)
 
         self.cameraSettingsButton_2 = QPushButton(self.horizontalWidget)
         self.cameraSettingsButton_2.setObjectName(u"cameraSettingsButton_2")
         self.cameraSettingsButton_2.setMinimumSize(QSize(0, 135))
-        self.cameraSettingsButton_2.setFont(font3)
+        self.cameraSettingsButton_2.setFont(font4)
 
         self.horizontalLayout.addWidget(self.cameraSettingsButton_2)
 
         self.modelSettingsButton_2 = QPushButton(self.horizontalWidget)
         self.modelSettingsButton_2.setObjectName(u"modelSettingsButton_2")
         self.modelSettingsButton_2.setMinimumSize(QSize(0, 135))
-        self.modelSettingsButton_2.setFont(font3)
+        self.modelSettingsButton_2.setFont(font4)
 
         self.horizontalLayout.addWidget(self.modelSettingsButton_2)
 
         self.videoPlaybackButton_2 = QPushButton(self.horizontalWidget)
         self.videoPlaybackButton_2.setObjectName(u"videoPlaybackButton_2")
         self.videoPlaybackButton_2.setMinimumSize(QSize(0, 135))
-        self.videoPlaybackButton_2.setFont(font3)
+        self.videoPlaybackButton_2.setFont(font4)
 
         self.horizontalLayout.addWidget(self.videoPlaybackButton_2)
 
@@ -244,7 +249,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(MainWindow)

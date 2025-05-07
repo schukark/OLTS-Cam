@@ -15,8 +15,8 @@ class ApplicationWindow(QMainWindow):
         # Инициализация экранов
         self.screens = {
             'home': HomeScreen(self.ui.homePage),
-            'camera': CameraScreen(self.ui),
-            'model': ModelScreen(self.ui),
+            'camera': CameraScreen(self.ui, self),
+            'model': ModelScreen(self.ui, self),
             'video': VideoScreen(self.ui)
         }
         
@@ -29,6 +29,9 @@ class ApplicationWindow(QMainWindow):
         # Показываем главный экран по умолчанию
         self.show_screen('home')
 
+    def stop_video(self):
+        self.screens['video'].stop_capture()
+
     def show_screen(self, screen_name):
         """Переключает на указанный экран"""
         screen_map = {
@@ -38,9 +41,13 @@ class ApplicationWindow(QMainWindow):
             'video': self.ui.videoPlaybackPage
         }
         
+        
         if (self.cur_screen == "camera"):
             self.screens['camera'].load_settings()
             self.screens['camera'].clear_highlight()
+            
+        if screen_name == "video":
+            self.screens['video'].start_capture()
         
         self.ui.stackedWidget.setCurrentWidget(screen_map[screen_name])
         self.cur_screen = screen_name
