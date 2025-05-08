@@ -15,8 +15,8 @@ class ModelManager:
     def write_to_db(self):
         result = self.model.predict_boxes()
 
-        if result is None:
-            self.error_msg = "Failed to get predictions"
+        if self.model.error_msg is not None:
+            self.error_msg = self.model.error_msg
             return
 
         img, boxes, labels = result
@@ -43,6 +43,7 @@ class ModelManager:
         #     self.dbObject.create(item=object)
 
         self.image1, self.image2 = self.model.show_boxes(img, boxes, labels)
+        self.error_msg = None
 
     def get_error(self) -> str:
         return self.error_msg

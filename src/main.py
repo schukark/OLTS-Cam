@@ -19,8 +19,9 @@ def run_model(app, window):
             continue
 
         boxes, frame = result
+        error_message = model_manager.get_error()
 
-        window.update_frame(boxes, frame)
+        window.update_frame(boxes, frame, error_message)
 
 
 if __name__ == '__main__':
@@ -28,6 +29,6 @@ if __name__ == '__main__':
     window = ApplicationWindow()
     window.show()
 
-    Thread(target=run_model(app, window))
+    Thread(target=run_model(app, window), daemon=True).start()
 
     sys.exit(app.exec())

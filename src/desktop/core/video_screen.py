@@ -78,14 +78,14 @@ class VideoScreen:
         # Создаем пустое черное изображение
         pixmap = QPixmap(self.ui.video_label.size())
         pixmap.fill(Qt.black)
-        
+
         # Рисуем текст ошибки
         painter = QPainter(pixmap)
         painter.setPen(QColor(Qt.red))
         painter.setFont(QFont("Arial", 16))
         painter.drawText(pixmap.rect(), Qt.AlignCenter, message)
         painter.end()
-        
+
         self.ui.video_label.setPixmap(pixmap)
 
     def _update_displayed_image(self):

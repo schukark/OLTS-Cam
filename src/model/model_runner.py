@@ -3,6 +3,8 @@ import os
 import cv2
 import torch
 
+from threading import Thread
+
 from torchvision.models.detection import \
     SSDLite320_MobileNet_V3_Large_Weights as SSDWeights
 from torchvision.models.detection import ssdlite320_mobilenet_v3_large
@@ -33,6 +35,8 @@ class ModelRunner:
     weights: ...
     dbObject: ...
     settings: ...
+    thread: Thread
+    error_msg: str
 
     def __init__(self):
         self.weights = SSDWeights.COCO_V1
@@ -41,12 +45,10 @@ class ModelRunner:
         self.capture = None
         self.set_model()
 
-        if self.capture is None:
-            raise ValueError("Can't open capture")
-
         self.preprocess = self.weights.transforms()
+        self.error_msg = None
 
-    def set_model(self):
+    def set_model_thread(self):
         self.model = ssdlite320_mobilenet_v3_large(
             self.weights,
             detections_per_img=self.settings["detections_per_image"],
@@ -57,9 +59,14 @@ class ModelRunner:
         if self.capture is not None:
             self.capture.release()
 
-        self.capture = cv2.VideoCapture(self.settings["rtsp_url"])
-        self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
-        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
+        capture = cv2.VideoCapture(self.settings["rtsp_url"])
+        capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
+        capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
+        self.capture = capture
+
+    def set_model(self):
+        self.thread = Thread(target=self.set_model_thread, daemon=True)
+        self.thread.start()
 
     def predict_boxes(self):
         self.set_model()
@@ -67,7 +74,8 @@ class ModelRunner:
         frame = self.__get_last_frame()
 
         if frame is None:
-            return None
+            self.error_msg = "Failed to get a frame"
+            return
 
         img = torch.from_numpy(frame).permute(2, 0, 1)
 
@@ -92,8 +100,9 @@ class ModelRunner:
 
     def __get_last_frame(self):
         # return read_image("dog_bike_car.jpg")
-        if not self.capture.isOpened():
-            return None
+        if self.capture is None or not self.capture.isOpened():
+            self.error_msg = "Capture failed to open"
+            return
 
         _ret, frame = self.capture.read()
         return frame
