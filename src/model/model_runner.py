@@ -33,27 +33,44 @@ class ModelRunner:
 
     def _get_settings(self):
         try:
-            if not os.path.exists("../../../settings/camera_settings.json"):
+            # Получаем абсолютный путь к директории текущего файла (model.py)
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            # Поднимаемся на три уровня вверх (из src/model/ в корень проекта)
+            project_root = os.path.dirname(os.path.dirname(current_dir))
+            # Формируем полный путь к файлу настроек
+            settings_path = os.path.join(project_root, "settings", "camera_settings.json")
+            
+            print(f"Looking for settings at: {settings_path}")  # Для отладки
+
+            if not os.path.exists(settings_path):
+                print("Settings file not found, using defaults")
                 return {
                     "rtsp_url": "rtsp://:8554/video",
-                    "fps": 5,
+                    "fps": 15,
                     "nms_thresh": 0.3,
                     "score_thresh": 0.7,
                     "detections_per_image": 5
                 }
 
-            with open("../../../settings/camera_settings.json", "r") as f:
+            with open(settings_path, "r") as f:
                 settings = json.load(f)
                 return {
                     "rtsp_url": settings.get("rtsp_url", "rtsp://:8554/video"),
-                    "fps": settings.get("fps", 5),
+                    "fps": settings.get("fps", 15),
                     "nms_thresh": settings.get("nms_thresh", 0.3),
                     "score_thresh": settings.get("score_thresh", 0.7),
                     "detections_per_image": settings.get("detections_per_image", 5)
                 }
         except Exception as e:
             self.error_msg = f"Settings error: {str(e)}"
-            return {}
+            print(f"Error loading settings: {e}")  # Для отладки
+            return {
+                "rtsp_url": "rtsp://:8554/video",
+                "fps": 15,
+                "nms_thresh": 0.3,
+                "score_thresh": 0.7,
+                "detections_per_image": 5
+            }
 
     def set_model(self):
         try:
@@ -86,7 +103,7 @@ class ModelRunner:
         while True:
             if not self.capture or not self.capture.isOpened():
                 if not self._init_capture():
-                    sleep(0.1)  # Небольшая задержка перед повторной попыткой
+                    sleep(0.05)  # Небольшая задержка перед повторной попыткой
                     continue
 
             ret, frame = self.capture.read()
@@ -97,7 +114,7 @@ class ModelRunner:
                     self.frame_ready.set()  # Сигнализируем, что кадр доступен
             else:
                 self.error_msg = "Failed to read frame"
-                sleep(0.1)  # Небольшая задержка перед повторной попыткой
+                sleep(0.05)  # Небольшая задержка перед повторной попыткой
                 continue
 
     def predict_boxes(self):
