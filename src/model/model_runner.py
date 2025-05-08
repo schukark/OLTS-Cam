@@ -128,7 +128,7 @@ class ModelRunner:
             img_qimage = QImage(img_np.data, w, h, 3 * w, QImage.Format_RGB888)
             box_qimage = QImage(box_img.data, w, h, 3 * w, QImage.Format_RGB888)
 
-            return box_qimage, img_qimage
+            return img_qimage, box_qimage
         except Exception as e:
             self.error_msg = f"Box drawing error: {str(e)}"
             return None, None

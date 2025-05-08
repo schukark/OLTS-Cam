@@ -16,10 +16,10 @@ def run_model(app, window):
 
         #sleep(0.1)
         
-        boxes, frame = model_manager.get_images()
+        frame, boxes = model_manager.get_images()
         error_message = model_manager.get_error()
 
-        window.update_frame(boxes, frame, error_message)
+        window.update_frame(frame, boxes, error_message)
         
         #SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "file.txt"
         #with open(SETTINGS_PATH, 'w', encoding='utf-8') as f:
