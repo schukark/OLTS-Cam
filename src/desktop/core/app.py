@@ -1,9 +1,10 @@
 from PySide6.QtWidgets import QMainWindow
-from ui.ui_main import Ui_MainWindow
+from ..ui.ui_main import Ui_MainWindow
 from .home_screen import HomeScreen
 from .camera_screen import CameraScreen
 from .model_screen import ModelScreen
 from .video_screen import VideoScreen
+
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -11,7 +12,7 @@ class ApplicationWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.cur_screen = 'home'
-        
+
         # Инициализация экранов
         self.screens = {
             'home': HomeScreen(self.ui.homePage),
@@ -19,13 +20,16 @@ class ApplicationWindow(QMainWindow):
             'model': ModelScreen(self.ui, self),
             'video': VideoScreen(self.ui)
         }
-        
+
         # Подключение кнопок навигации
         self.ui.homeButton.clicked.connect(lambda: self.show_screen('home'))
-        self.ui.cameraSettingsButton_2.clicked.connect(lambda: self.show_screen('camera'))
-        self.ui.modelSettingsButton_2.clicked.connect(lambda: self.show_screen('model'))
-        self.ui.videoPlaybackButton_2.clicked.connect(lambda: self.show_screen('video'))
-        
+        self.ui.cameraSettingsButton_2.clicked.connect(
+            lambda: self.show_screen('camera'))
+        self.ui.modelSettingsButton_2.clicked.connect(
+            lambda: self.show_screen('model'))
+        self.ui.videoPlaybackButton_2.clicked.connect(
+            lambda: self.show_screen('video'))
+
         # Показываем главный экран по умолчанию
         self.show_screen('home')
 
@@ -40,11 +44,11 @@ class ApplicationWindow(QMainWindow):
             'model': self.ui.modelSettingsPage,
             'video': self.ui.videoPlaybackPage
         }
-        
+
         if (self.cur_screen == "camera"):
             self.screens['camera'].load_settings()
             self.screens['camera'].clear_highlight()
-                
+
         self.ui.stackedWidget.setCurrentWidget(screen_map[screen_name])
         self.cur_screen = screen_name
 
