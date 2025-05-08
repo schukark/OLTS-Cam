@@ -10,7 +10,12 @@ class ModelManager:
         self.dbObject = Objects()
 
     def write_to_db(self):
-        img, boxes, labels = self.model.predict_boxes()
+        result = self.model.predict_boxes()
+
+        if result is None:
+            return None
+
+        img, boxes, labels = result
 
         if boxes is None or labels is None:
             return

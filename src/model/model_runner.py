@@ -64,7 +64,12 @@ class ModelRunner:
     def predict_boxes(self):
         self.set_model()
 
-        img = torch.from_numpy(self.__get_last_frame()).permute(2, 0, 1)
+        frame = self.__get_last_frame()
+
+        if frame is None:
+            return None
+
+        img = torch.from_numpy(frame).permute(2, 0, 1)
 
         batch = [self.preprocess(img)]
 
