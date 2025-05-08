@@ -38,6 +38,7 @@ class ModelRunner:
         self.weights = SSDWeights.COCO_V1
         self.settings = _get_settings()
 
+        self.capture = None
         self.set_model()
 
         if self.capture is None:
