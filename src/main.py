@@ -1,5 +1,5 @@
 import sys
-from time import sleep
+from time import sleep, time
 from threading import Thread
 
 from PySide6.QtWidgets import QApplication
@@ -10,21 +10,29 @@ from pathlib import Path
 
 def run_model(app, window):
     model_manager = ModelManager()
+    
+    # Получаем FPS из настроек
+    try:
+        fps = model_manager.model.settings["fps"]
+        frame_delay = 1.0 / fps
+    except:
+        fps = 5  # значение по умолчанию
+        frame_delay = 1.0 / fps
 
     while app.instance() is not None:
+        start_time = time()
+        
         model_manager.write_to_db()
 
-        #sleep(0.1)
-        
         frame, boxes = model_manager.get_images()
         error_message = model_manager.get_error()
 
         window.update_frame(frame, boxes, error_message)
         
-        #SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "file.txt"
-        #with open(SETTINGS_PATH, 'w', encoding='utf-8') as f:
-        #    f.write(error_message + "\n")
-
+        # Рассчитываем время выполнения и компенсируем задержкой
+        processing_time = time() - start_time
+        if processing_time < frame_delay:
+            sleep(frame_delay - processing_time)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

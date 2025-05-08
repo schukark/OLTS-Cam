@@ -4,8 +4,9 @@ import os
 import cv2
 import torch
 import numpy as np
-from threading import Thread
+from threading import Thread, Lock, Event
 from PySide6.QtGui import QImage
+from time import time, sleep
 
 from torchvision.models.detection import \
     SSDLite320_MobileNet_V3_Large_Weights as SSDWeights
@@ -21,24 +22,31 @@ class ModelRunner:
         self.model = None
         self.error_msg = None
         self.is_running = False
+        self.latest_frame = None
+        self.frame_lock = Lock()
+        self.frame_ready = Event()  # Событие для сигнализации о наличии кадра
         self.set_model()
+        
+        # Запускаем поток для непрерывного захвата кадров
+        self.capture_thread = Thread(target=self._capture_frames, daemon=True)
+        self.capture_thread.start()
 
     def _get_settings(self):
         try:
-            if not os.path.exists("../../settings/camera_settings.json"):
+            if not os.path.exists("../../../settings/camera_settings.json"):
                 return {
                     "rtsp_url": "rtsp://:8554/video",
-                    "fps": 30,
+                    "fps": 5,
                     "nms_thresh": 0.3,
                     "score_thresh": 0.7,
                     "detections_per_image": 5
                 }
 
-            with open("../../settings/camera_settings.json", "r") as f:
+            with open("../../../settings/camera_settings.json", "r") as f:
                 settings = json.load(f)
                 return {
                     "rtsp_url": settings.get("rtsp_url", "rtsp://:8554/video"),
-                    "fps": settings.get("fps", 30),
+                    "fps": settings.get("fps", 5),
                     "nms_thresh": settings.get("nms_thresh", 0.3),
                     "score_thresh": settings.get("score_thresh", 0.7),
                     "detections_per_image": settings.get("detections_per_image", 5)
@@ -66,18 +74,44 @@ class ModelRunner:
 
         self.capture = cv2.VideoCapture(self.settings["rtsp_url"], cv2.CAP_FFMPEG)
         self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
-        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
+        print(self.settings["fps"])
+        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         if not self.capture.isOpened():
             self.error_msg = "Failed to open video capture"
             return False
         return True
 
+    def _capture_frames(self):
+        while True:
+            if not self.capture or not self.capture.isOpened():
+                if not self._init_capture():
+                    sleep(0.1)  # Небольшая задержка перед повторной попыткой
+                    continue
+
+            ret, frame = self.capture.read()
+            if ret:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                with self.frame_lock:
+                    self.latest_frame = frame_rgb
+                    self.frame_ready.set()  # Сигнализируем, что кадр доступен
+            else:
+                self.error_msg = "Failed to read frame"
+                sleep(0.1)  # Небольшая задержка перед повторной попыткой
+                continue
+
     def predict_boxes(self):
-        frame = self._get_frame()
-        if frame is None:
-            self.error_msg = "Failed to get frame"
+        # Ждем первый кадр в течение 5 секунд
+        if not self.frame_ready.wait(timeout=5.0):
+            self.error_msg = "No frames available yet (timeout)"
             return None
+
+        with self.frame_lock:
+            if self.latest_frame is None:
+                self.error_msg = "No frames available"
+                return None
+
+            frame = self.latest_frame.copy()
 
         try:
             img_tensor = torch.from_numpy(frame).permute(2, 0, 1).float() / 255.0
@@ -87,18 +121,6 @@ class ModelRunner:
         except Exception as e:
             self.error_msg = f"Prediction error: {str(e)}"
             return None
-
-    def _get_frame(self):
-        if not self.capture or not self.capture.isOpened():
-            if not self._init_capture():
-                return None
-
-        ret, frame = self.capture.read()
-        if not ret:
-            self.error_msg = "Failed to read frame"
-            return None
-
-        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     def show_boxes(self, img_tensor, boxes, labels):
         try:
