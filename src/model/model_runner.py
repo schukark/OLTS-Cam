@@ -34,7 +34,7 @@ class ModelRunner:
     dbObject: ...
     settings: ...
 
-    def __init__(self, rtsp_url: str):
+    def __init__(self):
         self.weights = SSDWeights.COCO_V1
         self.settings = _get_settings()
 
@@ -53,12 +53,15 @@ class ModelRunner:
             score_thresh=self.settings["score_thresh"])
         self.model.eval()
 
+        if self.capture is not None:
+            self.capture.release()
+
         self.capture = cv2.VideoCapture(self.settings["rtsp_url"])
         self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
         self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
 
     def predict_boxes(self):
-        self.set_model
+        self.set_model()
 
         img = torch.from_numpy(self.__get_last_frame()).permute(2, 0, 1)
 
@@ -70,8 +73,7 @@ class ModelRunner:
 
         return img, prediction["boxes"].detach(), labels
 
-    def show_boxes(self):
-        img, boxes, labels = self.predict_boxes()
+    def show_boxes(self, img, boxes, labels):
         img = img.permute(1, 2, 0)
 
         box = draw_bounding_boxes(img, boxes=boxes,

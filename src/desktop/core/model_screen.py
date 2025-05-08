@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import Dict, Tuple
 from PySide6.QtWidgets import QMessageBox, QFileDialog
-from PySide6.QtCore import Qt
 
 
 class ModelSettingsValidator:
@@ -11,7 +10,7 @@ class ModelSettingsValidator:
         """Валидация количества объектов"""
         if not count:
             return False, "Количество объектов не может быть пустым"
-        
+
         try:
             count_num = int(count)
             if not 3 <= count_num <= 15:
@@ -24,7 +23,7 @@ class ModelSettingsValidator:
         """Валидация количества кадров в секунду"""
         if not fps:
             return False, "FPS не может быть пустым"
-        
+
         try:
             fps_num = float(fps)
             if fps_num <= 0:
@@ -37,7 +36,7 @@ class ModelSettingsValidator:
         """Валидация порога идентификации объектов"""
         if not threshold:
             return False, "Порог не может быть пустым"
-        
+
         try:
             threshold_num = float(threshold)
             if not 0 <= threshold_num <= 1:
@@ -48,14 +47,15 @@ class ModelSettingsValidator:
 
 
 class ModelScreen:
-    SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "settings" / "model_settings.json"
-    
+    SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / \
+        "settings" / "model_settings.json"
+
     def __init__(self, ui, window):
         self.ui = ui
         self.window = window
         self.validator = ModelSettingsValidator()
         self.setup_connections()
-        
+
         # Создаем файл с настройками по умолчанию, если его нет
         tmp = Path(__file__).parent.parent.parent.parent / "camera"
         default_settings = {
@@ -80,7 +80,8 @@ class ModelScreen:
         """Подключение сигналов"""
         self.ui.saveModelSettingsButton.clicked.connect(self.on_save_clicked)
         self.ui.browseFolderButton.clicked.connect(self.on_browse_folder)
-        self.ui.horizontalSlider.valueChanged.connect(self.on_threshold_changed)
+        self.ui.horizontalSlider.valueChanged.connect(
+            self.on_threshold_changed)
 
     def on_threshold_changed(self, value):
         """Обработчик изменения значения слайдера"""
@@ -111,7 +112,7 @@ class ModelScreen:
         """Устанавливает все настройки из словаря"""
         self.ui.videoObjectCount.setText(settings.get('object_count', ''))
         self.ui.fpsInput.setText(settings.get('fps', ''))
-        
+
         # Устанавливаем значение порога и синхронизируем слайдер
         threshold = settings.get('threshold', '0.5')
         self.ui.objectThresholdInput.setText(threshold)
@@ -120,12 +121,13 @@ class ModelScreen:
             self.ui.horizontalSlider.setValue(slider_value)
         except ValueError:
             self.ui.horizontalSlider.setValue(50)  # Значение по умолчанию 0.5
-            
+
         self.ui.saveFolderInput.setText(settings.get('save_folder', ''))
 
     def clear_highlight(self):
         """Убирает подсветку со всех полей"""
-        for field in ['videoObjectCount', 'fpsInput', 'objectThresholdInput', 'saveFolderInput']:
+        for field in ['videoObjectCount', 'fpsInput',
+                      'objectThresholdInput', 'saveFolderInput']:
             getattr(self.ui, field).setStyleSheet("")
 
     def highlight_error_field(self, field_name: str):
@@ -140,7 +142,8 @@ class ModelScreen:
         error_messages = []
 
         # Проверка количества объектов
-        valid_count, count_error = self.validator.validate_object_count(settings['object_count'])
+        valid_count, count_error = self.validator.validate_object_count(
+            settings['object_count'])
         if not valid_count:
             self.highlight_error_field('videoObjectCount')
             error_messages.append(count_error)
@@ -154,7 +157,8 @@ class ModelScreen:
             has_errors = True
 
         # Проверка порога
-        valid_thresh, thresh_error = self.validator.validate_threshold(settings['threshold'])
+        valid_thresh, thresh_error = self.validator.validate_threshold(
+            settings['threshold'])
         if not valid_thresh:
             self.highlight_error_field('objectThresholdInput')
             error_messages.append(thresh_error)
@@ -162,25 +166,27 @@ class ModelScreen:
 
         if has_errors:
             QMessageBox.warning(
-                None, 
-                "Ошибка валидации", 
+                None,
+                "Ошибка валидации",
                 "\n".join(error_messages)
             )
-            
+
         return not has_errors, settings
 
     def on_save_clicked(self):
         """Обработчик сохранения настроек модели"""
         is_valid, settings = self.validate_all_fields()
-        
+
         if not is_valid:
             return
 
         try:
             self.save_settings(settings)
-            QMessageBox.information(None, "Успех", "Настройки модели успешно сохранены!")
+            QMessageBox.information(
+                None, "Успех", "Настройки модели успешно сохранены!")
         except Exception as e:
-            QMessageBox.critical(None, "Ошибка", f"Не удалось сохранить настройки: {str(e)}")
+            QMessageBox.critical(
+                None, "Ошибка", f"Не удалось сохранить настройки: {str(e)}")
 
     def save_settings(self, settings: Dict):
         """Сохраняет настройки в файл"""
@@ -200,5 +206,6 @@ class ModelScreen:
             QMessageBox.warning(
                 None,
                 "Ошибка загрузки",
-                f"Не удалось загрузить настройки модели: {str(e)}\nБудут использованы значения по умолчанию."
+                f"Не удалось загрузить настройки модели: \
+                    {str(e)}\nБудут использованы значения по умолчанию."
             )
