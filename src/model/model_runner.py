@@ -111,11 +111,3 @@ class ModelRunner:
         self.capture.release()
         cv2.destroyAllWindows()
 
-
-if __name__ == "__main__":
-    mr = ModelRunner("rtsp://:8554/video")
-    im = mr.predict()
-    # cv2.imwrite("test.png", im)
-    print(im)
-
-    mr.exit()

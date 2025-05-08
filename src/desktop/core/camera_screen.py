@@ -187,7 +187,6 @@ class CameraScreen:
         os.makedirs(self.SETTINGS_PATH.parent, exist_ok=True)
         with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
-        self.window.screens['video'].stop_capture()
 
     def load_settings(self):
         """Загружает настройки из файла"""

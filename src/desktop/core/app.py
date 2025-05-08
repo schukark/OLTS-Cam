@@ -33,9 +33,6 @@ class ApplicationWindow(QMainWindow):
         # Показываем главный экран по умолчанию
         self.show_screen('home')
 
-    def stop_video(self):
-        self.screens['video'].stop_capture()
-
     def show_screen(self, screen_name):
         """Переключает на указанный экран"""
         screen_map = {
@@ -59,4 +56,4 @@ class ApplicationWindow(QMainWindow):
         :param image2: Второе изображение (QImage) или None
         :param error_msg: Сообщение об ошибке (str) или None
         """
-        self.screens['video'].update_frame(self, image1, image2, error_msg)
+        self.screens['video'].update_frame(image1, image2, error_msg)
