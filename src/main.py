@@ -26,8 +26,8 @@ if __name__ == '__main__':
     window = ApplicationWindow()
     window.show()
 
-    model_manager = ModelManager()
+    #model_manager = ModelManager()
 
-    Thread(target=run_model(app, window, model_manager))
+    #Thread(target=run_model(app, window, model_manager))
 
     sys.exit(app.exec())

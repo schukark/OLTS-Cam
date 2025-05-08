@@ -52,10 +52,11 @@ class ApplicationWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentWidget(screen_map[screen_name])
         self.cur_screen = screen_name
 
-    def update_frame(self, image1, image2):
+    def update_frame(self, image1, image2, error_msg=None):
         """
-        Обновляет кадр на экране видео, передавая оба изображения в VideoScreen
-        :param image1: Первое изображение (QImage)
-        :param image2: Второе изображение (QImage)
+        Обновляет кадр на экране видео
+        :param image1: Первое изображение (QImage) или None
+        :param image2: Второе изображение (QImage) или None
+        :param error_msg: Сообщение об ошибке (str) или None
         """
-        self.screens['video'].update_frame(image1, image2)
+        self.screens['video'].update_frame(self, image1, image2, error_msg)
