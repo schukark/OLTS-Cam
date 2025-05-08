@@ -44,10 +44,6 @@ class ModelRunner:
 
         self.set_model()
 
-        self.capture = cv2.VideoCapture(rtsp_url)
-        self.capture.set(cv2.CAP_PROP_FPS, 10)
-        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
-
         self.dbObject = Objects()
 
         if self.capture is None:
@@ -116,7 +112,7 @@ class ModelRunner:
                                   width=4, font_size=30)
 
         im = to_pil_image(box.detach())
-        return im
+        return im, img
 
     def __get_last_frame(self):
         # return read_image("dog_bike_car.jpg")
