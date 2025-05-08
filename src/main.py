@@ -14,16 +14,16 @@ def run_model(app, window):
     while app.instance() is not None:
         model_manager.write_to_db()
 
-        sleep(20)
+        #sleep(0.1)
         
         boxes, frame = model_manager.get_images()
         error_message = model_manager.get_error()
 
         window.update_frame(boxes, frame, error_message)
         
-        SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "file.txt"
-        with open(SETTINGS_PATH, 'w', encoding='utf-8') as f:
-            f.write(error_message + "\n")
+        #SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "file.txt"
+        #with open(SETTINGS_PATH, 'w', encoding='utf-8') as f:
+        #    f.write(error_message + "\n")
 
 
 if __name__ == '__main__':
