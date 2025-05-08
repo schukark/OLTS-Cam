@@ -3,24 +3,22 @@ import os
 from pathlib import Path
 from typing import Dict, Tuple
 from PySide6.QtWidgets import QMessageBox, QFileDialog
+from PySide6.QtCore import Qt
 
 
 class ModelSettingsValidator:
-    def validate_resolution(self, resolution: str) -> Tuple[bool, str]:
-        """Валидация разрешения видео (формат: WIDTHxHEIGHT)"""
-        if not resolution:
-            return False, "Разрешение не может быть пустым"
-        
-        if 'x' not in resolution:
-            return False, "Используйте формат: ШИРИНАxВЫСОТА (например: 1920x1080)"
+    def validate_object_count(self, count: str) -> Tuple[bool, str]:
+        """Валидация количества объектов"""
+        if not count:
+            return False, "Количество объектов не может быть пустым"
         
         try:
-            width, height = map(int, resolution.split('x'))
-            if width <= 0 or height <= 0:
-                return False, "Разрешение должно быть положительным числом"
+            count_num = int(count)
+            if not 3 <= count_num <= 15:
+                return False, "Количество объектов должно быть от 3 до 15"
             return True, ""
         except ValueError:
-            return False, "Разрешение должно содержать только числа (например: 1920x1080)"
+            return False, "Количество объектов должно быть целым числом"
 
     def validate_fps(self, fps: str) -> Tuple[bool, str]:
         """Валидация количества кадров в секунду"""
@@ -57,13 +55,12 @@ class ModelScreen:
         self.window = window
         self.validator = ModelSettingsValidator()
         self.setup_connections()
-        self.load_settings()
-
-        tmp = Path(__file__).parent.parent.parent.parent / "camera"
+        
         # Создаем файл с настройками по умолчанию, если его нет
+        tmp = Path(__file__).parent.parent.parent.parent / "camera"
         default_settings = {
-            'resolution': '1920x1080',
-            'fps': '30',
+            'object_count': '',
+            'fps': '',
             'threshold': '0.5',
             'save_folder': str(tmp),
         }
@@ -83,6 +80,12 @@ class ModelScreen:
         """Подключение сигналов"""
         self.ui.saveModelSettingsButton.clicked.connect(self.on_save_clicked)
         self.ui.browseFolderButton.clicked.connect(self.on_browse_folder)
+        self.ui.horizontalSlider.valueChanged.connect(self.on_threshold_changed)
+
+    def on_threshold_changed(self, value):
+        """Обработчик изменения значения слайдера"""
+        threshold = value / 100.0  # Преобразуем 2-9 в 0.2-0.9
+        self.ui.objectThresholdInput.setText(f"{threshold:.2f}")
 
     def on_browse_folder(self):
         """Обработчик кнопки выбора папки"""
@@ -98,7 +101,7 @@ class ModelScreen:
     def get_all_settings(self) -> Dict:
         """Получает все настройки в виде словаря"""
         return {
-            'resolution': self.ui.videoResolutionInput.text().strip(),
+            'object_count': self.ui.videoObjectCount.text().strip(),
             'fps': self.ui.fpsInput.text().strip(),
             'threshold': self.ui.objectThresholdInput.text().strip(),
             'save_folder': self.ui.saveFolderInput.text().strip(),
@@ -106,14 +109,23 @@ class ModelScreen:
 
     def set_all_settings(self, settings: Dict):
         """Устанавливает все настройки из словаря"""
-        self.ui.videoResolutionInput.setText(settings.get('resolution', ''))
+        self.ui.videoObjectCount.setText(settings.get('object_count', ''))
         self.ui.fpsInput.setText(settings.get('fps', ''))
-        self.ui.objectThresholdInput.setText(settings.get('threshold', ''))
+        
+        # Устанавливаем значение порога и синхронизируем слайдер
+        threshold = settings.get('threshold', '0.5')
+        self.ui.objectThresholdInput.setText(threshold)
+        try:
+            slider_value = int(float(threshold) * 100)
+            self.ui.horizontalSlider.setValue(slider_value)
+        except ValueError:
+            self.ui.horizontalSlider.setValue(50)  # Значение по умолчанию 0.5
+            
         self.ui.saveFolderInput.setText(settings.get('save_folder', ''))
 
     def clear_highlight(self):
         """Убирает подсветку со всех полей"""
-        for field in ['videoResolutionInput', 'fpsInput', 'objectThresholdInput', 'saveFolderInput']:
+        for field in ['videoObjectCount', 'fpsInput', 'objectThresholdInput', 'saveFolderInput']:
             getattr(self.ui, field).setStyleSheet("")
 
     def highlight_error_field(self, field_name: str):
@@ -127,11 +139,11 @@ class ModelScreen:
         has_errors = False
         error_messages = []
 
-        # Проверка разрешения
-        valid_res, res_error = self.validator.validate_resolution(settings['resolution'])
-        if not valid_res:
-            self.highlight_error_field('videoResolutionInput')
-            error_messages.append(res_error)
+        # Проверка количества объектов
+        valid_count, count_error = self.validator.validate_object_count(settings['object_count'])
+        if not valid_count:
+            self.highlight_error_field('videoObjectCount')
+            error_messages.append(count_error)
             has_errors = True
 
         # Проверка FPS
