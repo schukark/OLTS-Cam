@@ -3,12 +3,16 @@ import os
 import time
 import cv2
 import torch
+
 from torchvision.models.detection import \
     SSDLite320_MobileNet_V3_Large_Weights as SSDWeights
 from torchvision.models.detection import ssdlite320_mobilenet_v3_large
+from torchvision.utils import draw_bounding_boxes
+from torchvision.transforms.functional import to_pil_image
 
 from ..database.Objects import Objects
 from ..database.tables.ObjectItem import ObjectItem
+
 
 def _get_settings():
     if not os.path.exists("../../settings/camera_settings.json"):
@@ -63,7 +67,7 @@ class ModelRunner:
         self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
         self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
 
-    def predict(self):
+    def predict_boxes(self):
         self.set_model
 
         img = torch.from_numpy(self.__get_last_frame()).permute(2, 0, 1)
@@ -74,21 +78,23 @@ class ModelRunner:
         labels = [self.weights.meta["categories"][i]
                   for i in prediction["labels"]]
 
-        return prediction["boxes"].detach(), labels
+        return img, prediction["boxes"].detach(), labels
 
     def predict_and_push(self):
-        boxes, labels = self.predict()
+        _img, boxes, labels = self.predict_boxes()
 
         if boxes is None or labels is None:
             return
 
         assert len(boxes) == len(labels)
 
+        time_now = time.now()
+
         objects = [
             ObjectItem(
                 ObjrecID=0,
                 Name=label,
-                Time=time.now(),
+                Time=time_now,
                 PositionCoord=box,
                 ContID=0,
                 RecordID=0,
@@ -99,6 +105,18 @@ class ModelRunner:
 
         for object in objects:
             self.dbObject.create(item=object)
+
+    def show_boxes(self):
+        img, boxes, labels = self.predict_boxes()
+        img = img.permute(1, 2, 0)
+
+        box = draw_bounding_boxes(img, boxes=boxes,
+                                  labels=labels,
+                                  colors="red",
+                                  width=4, font_size=30)
+
+        im = to_pil_image(box.detach())
+        return im
 
     def __get_last_frame(self):
         # return read_image("dog_bike_car.jpg")
