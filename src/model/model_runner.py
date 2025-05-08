@@ -1,6 +1,5 @@
 import json
 import os
-import time
 import cv2
 import torch
 
@@ -9,9 +8,6 @@ from torchvision.models.detection import \
 from torchvision.models.detection import ssdlite320_mobilenet_v3_large
 from torchvision.utils import draw_bounding_boxes
 from torchvision.transforms.functional import to_pil_image
-
-from ..database.Objects import Objects
-from ..database.tables.ObjectItem import ObjectItem
 
 
 def _get_settings():
@@ -44,8 +40,6 @@ class ModelRunner:
 
         self.set_model()
 
-        self.dbObject = Objects()
-
         if self.capture is None:
             raise ValueError("Can't open capture")
 
@@ -75,32 +69,6 @@ class ModelRunner:
                   for i in prediction["labels"]]
 
         return img, prediction["boxes"].detach(), labels
-
-    def predict_and_push(self):
-        _img, boxes, labels = self.predict_boxes()
-
-        if boxes is None or labels is None:
-            return
-
-        assert len(boxes) == len(labels)
-
-        time_now = time.now()
-
-        objects = [
-            ObjectItem(
-                ObjrecID=0,
-                Name=label,
-                Time=time_now,
-                PositionCoord=box,
-                ContID=0,
-                RecordID=0,
-            )
-
-            for (label, box) in zip(labels, boxes)
-        ]
-
-        for object in objects:
-            self.dbObject.create(item=object)
 
     def show_boxes(self):
         img, boxes, labels = self.predict_boxes()
