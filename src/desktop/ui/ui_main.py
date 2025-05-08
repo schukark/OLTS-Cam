@@ -161,14 +161,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.widget)
 
-        self.saveVideoCheckbox = QCheckBox(self.modelSettingsPage)
-        self.saveVideoCheckbox.setObjectName(u"saveVideoCheckbox")
-        font2 = QFont()
-        font2.setPointSize(10)
-        self.saveVideoCheckbox.setFont(font2)
-
-        self.verticalLayout_4.addWidget(self.saveVideoCheckbox)
-
         self.saveModelSettingsButton = QPushButton(self.modelSettingsPage)
         self.saveModelSettingsButton.setObjectName(u"saveModelSettingsButton")
         self.saveModelSettingsButton.setMinimumSize(QSize(0, 50))
@@ -191,13 +183,28 @@ class Ui_MainWindow(object):
 
         self.video_label = QLabel(self.videoPlaybackPage)
         self.video_label.setObjectName(u"video_label")
-        font3 = QFont()
-        font3.setPointSize(21)
-        self.video_label.setFont(font3)
+        font2 = QFont()
+        font2.setPointSize(21)
+        self.video_label.setFont(font2)
         self.video_label.setTextFormat(Qt.TextFormat.AutoText)
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_5.addWidget(self.video_label)
+
+        self.checkBox = QCheckBox(self.videoPlaybackPage)
+        self.checkBox.setObjectName(u"checkBox")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.checkBox.sizePolicy().hasHeightForWidth())
+        self.checkBox.setSizePolicy(sizePolicy2)
+        font3 = QFont()
+        font3.setPointSize(12)
+        font3.setHintingPreference(QFont.PreferNoHinting)
+        self.checkBox.setFont(font3)
+        self.checkBox.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+
+        self.verticalLayout_5.addWidget(self.checkBox)
 
         self.stackedWidget.addWidget(self.videoPlaybackPage)
 
@@ -205,11 +212,11 @@ class Ui_MainWindow(object):
 
         self.horizontalWidget = QWidget(self.centralwidget)
         self.horizontalWidget.setObjectName(u"horizontalWidget")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.horizontalWidget.sizePolicy().hasHeightForWidth())
-        self.horizontalWidget.setSizePolicy(sizePolicy2)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.horizontalWidget.sizePolicy().hasHeightForWidth())
+        self.horizontalWidget.setSizePolicy(sizePolicy3)
         self.horizontalLayout = QHBoxLayout(self.horizontalWidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.homeButton = QPushButton(self.horizontalWidget)
@@ -270,10 +277,10 @@ class Ui_MainWindow(object):
         self.objectThresholdInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u043e\u0440\u043e\u0433 \u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0446\u0438\u0438 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
         self.saveFolderInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0430\u043f\u043a\u0443 \u0434\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f", None))
         self.browseFolderButton.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0437\u043e\u0440...", None))
-        self.saveVideoCheckbox.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u044f\u0442\u044c \u0432\u0438\u0434\u0435\u043e \u0441 \u043e\u0431\u043d\u0430\u0440\u0443\u0436\u0435\u043d\u043d\u044b\u043c\u0438 \u043e\u0431\u044a\u0435\u043a\u0442\u0430\u043c\u0438", None))
         self.saveModelSettingsButton.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043c\u043e\u0434\u0435\u043b\u0438", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043e\u0441\u043f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u0435 \u0432\u0438\u0434\u0435\u043e", None))
         self.video_label.setText(QCoreApplication.translate("MainWindow", u"\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0432\u0438\u0434\u0435\u043e", None))
+        self.checkBox.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0431\u043e\u043a\u0441\u044b \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
         self.homeButton.setText(QCoreApplication.translate("MainWindow", u"\u0413\u043b\u0430\u0432\u043d\u0430\u044f", None))
         self.cameraSettingsButton_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043a\u0430\u043c\u0435\u0440\u044b", None))
         self.modelSettingsButton_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043c\u043e\u0434\u0435\u043b\u0438", None))

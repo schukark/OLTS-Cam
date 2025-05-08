@@ -318,18 +318,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="saveVideoCheckbox">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Сохранять видео с обнаруженными объектами</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QPushButton" name="saveModelSettingsButton">
           <property name="minimumSize">
            <size>
@@ -388,6 +376,28 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <hintingpreference>PreferNoHinting</hintingpreference>
+           </font>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LayoutDirection::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>Показать боксы объектов</string>
           </property>
          </widget>
         </item>

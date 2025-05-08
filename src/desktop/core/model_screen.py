@@ -66,7 +66,6 @@ class ModelScreen:
             'fps': '30',
             'threshold': '0.5',
             'save_folder': str(tmp),
-            'save_video': True
         }
 
         # Создаем папку, если её не существует
@@ -103,7 +102,6 @@ class ModelScreen:
             'fps': self.ui.fpsInput.text().strip(),
             'threshold': self.ui.objectThresholdInput.text().strip(),
             'save_folder': self.ui.saveFolderInput.text().strip(),
-            'save_video': self.ui.saveVideoCheckbox.isChecked()
         }
 
     def set_all_settings(self, settings: Dict):
@@ -112,7 +110,6 @@ class ModelScreen:
         self.ui.fpsInput.setText(settings.get('fps', ''))
         self.ui.objectThresholdInput.setText(settings.get('threshold', ''))
         self.ui.saveFolderInput.setText(settings.get('save_folder', ''))
-        self.ui.saveVideoCheckbox.setChecked(settings.get('save_video', True))
 
     def clear_highlight(self):
         """Убирает подсветку со всех полей"""
