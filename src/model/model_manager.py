@@ -1,13 +1,13 @@
-import time
-from database.tables.ObjectItem import ObjectItem
-from database.Objects import Objects
+# import time
+# from database.tables.ObjectItem import ObjectItem
+# from database.Objects import Objects
 from model.model_runner import ModelRunner
 
 
 class ModelManager:
     def __init__(self):
         self.model = ModelRunner()
-        self.dbObject = Objects()
+        # self.dbObject = Objects()
         self.error_msg = None
         self.image1 = None
         self.image2 = None
@@ -25,22 +25,22 @@ class ModelManager:
             self.error_msg = "Failed to get boxes"
             return
 
-        tn = time.now()
+        # tn = time.now()
 
-        assert len(boxes) == len(labels)
-        objects = [
-            ObjectItem(
-                Name=label,
-                Time=tn,
-                PositionCoord=box,
-                ContID=0,
-                RecordID=0
-            )
-            for (label, box) in zip(labels, boxes)
-        ]
+        # assert len(boxes) == len(labels)
+        # objects = [
+        #     ObjectItem(
+        #         Name=label,
+        #         Time=tn,
+        #         PositionCoord=box,
+        #         ContID=0,
+        #         RecordID=0
+        #     )
+        #     for (label, box) in zip(labels, boxes)
+        # ]
 
-        for object in objects:
-            self.dbObject.create(item=object)
+        # for object in objects:
+        #     self.dbObject.create(item=object)
 
         self.image1, self.image2 = self.model.show_boxes(img, boxes, labels)
 

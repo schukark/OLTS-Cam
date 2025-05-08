@@ -8,11 +8,13 @@ from desktop.core.app import ApplicationWindow
 from model.model_manager import ModelManager
 
 
-def run_model(app, window, model_manager: ModelManager):
+def run_model(app, window):
+    model_manager = ModelManager()
+
     while app.instance() is not None:
         result = model_manager.write_to_db()
 
-        sleep(10)
+        sleep(20)
         if result is None:
             continue
 
@@ -26,8 +28,6 @@ if __name__ == '__main__':
     window = ApplicationWindow()
     window.show()
 
-    #model_manager = ModelManager()
-
-    #Thread(target=run_model(app, window, model_manager))
+    Thread(target=run_model(app, window))
 
     sys.exit(app.exec())
