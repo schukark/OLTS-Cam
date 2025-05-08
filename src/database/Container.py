@@ -1,6 +1,6 @@
 from typing import Optional
 import sqlite3
-from tables.ContainerItem import ContainerItem
+from .tables import ContainerItem
 
 class Container:
     

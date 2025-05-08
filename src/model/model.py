@@ -6,11 +6,11 @@ import torch
 from torchvision.models.detection import \
     SSDLite320_MobileNet_V3_Large_Weights as SSDWeights
 from torchvision.models.detection import ssdlite320_mobilenet_v3_large
-from ..desktop.database import Objects
-from ..desktop.database.tables import ObjectItem
 
+from ..database.Objects import Objects
+from ..database.tables.ObjectItem import ObjectItem
 
-def __get_settings():
+def _get_settings():
     if not os.path.exists("../../settings/camera_settings.json"):
         settings = {}
     else:
@@ -18,7 +18,7 @@ def __get_settings():
             settings = json.load(settings_file)
 
     return {
-        "rstp_url": settings.get("rtsp_url", "rtsp://:8554/video"),
+        "rtsp_url": settings.get("rtsp_url", "rtsp://:8554/video"),
         "fps": settings.get("fps", 30),
         "nms_thresh": settings.get("nms_thresh", 0.3),
         "score_thresh": settings.get("score_thresh", 0.7),
@@ -36,7 +36,7 @@ class ModelRunner:
 
     def __init__(self, rtsp_url: str):
         self.weights = SSDWeights.COCO_V1
-        self.settings = __get_settings()
+        self.settings = _get_settings()
 
         self.set_model()
 
@@ -55,7 +55,7 @@ class ModelRunner:
         self.model = ssdlite320_mobilenet_v3_large(
             self.weights,
             detections_per_img=self.settings["detections_per_image"],
-            nms_thresh=self.settings["nms_thresh_self"],
+            nms_thresh=self.settings["nms_thresh"],
             score_thresh=self.settings["score_thresh"])
         self.model.eval()
 

@@ -1,5 +1,5 @@
 import sqlite3
-from tables.ObjectItem import ObjectItem
+from .tables import ObjectItem
 from typing import Optional
 
 class Objects:

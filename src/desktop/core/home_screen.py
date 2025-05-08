@@ -5,8 +5,11 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QSizePolicy
 import os
 from core.dialogs.license_dialog import LicenseDialog
+from pathlib import Path
 
 class HomeScreen:
+    RESOURCES_PATH = Path(__file__).parent.parent.parent.parent / "resources"
+    
     def __init__(self, parent):
         self.parent = parent
         self.setup_ui()
@@ -31,10 +34,10 @@ class HomeScreen:
         # Левая часть - логотип
         logo_label = QLabel()
         logo_path = os.path.join(
-            "resources", 
+            self.RESOURCES_PATH, 
             "logo.jpg"
         )
-        
+        print(logo_path)
         if os.path.exists(logo_path):
             logo_pixmap = QPixmap(logo_path)
             logo_pixmap = logo_pixmap.scaled(500, 300, Qt.KeepAspectRatio, Qt.SmoothTransformation)

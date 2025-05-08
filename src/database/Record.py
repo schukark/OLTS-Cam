@@ -1,6 +1,6 @@
 from typing import Optional
 import sqlite3
-from tables.RecordItem import RecordItem
+from .tables import RecordItem
 
 class Record:
 
