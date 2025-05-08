@@ -41,14 +41,17 @@ class ApplicationWindow(QMainWindow):
             'video': self.ui.videoPlaybackPage
         }
         
-        
         if (self.cur_screen == "camera"):
             self.screens['camera'].load_settings()
             self.screens['camera'].clear_highlight()
-            
-        if screen_name == "video":
-            self.screens['video'].start_capture()
-        
+                
         self.ui.stackedWidget.setCurrentWidget(screen_map[screen_name])
         self.cur_screen = screen_name
-        
+
+    def update_frame(self, image1, image2):
+        """
+        Обновляет кадр на экране видео, передавая оба изображения в VideoScreen
+        :param image1: Первое изображение (QImage)
+        :param image2: Второе изображение (QImage)
+        """
+        self.screens['video'].update_frame(image1, image2)

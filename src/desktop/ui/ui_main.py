@@ -210,20 +210,20 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_5.addWidget(self.video_label)
 
-        self.checkBox = QCheckBox(self.videoPlaybackPage)
-        self.checkBox.setObjectName(u"checkBox")
+        self.CheckBoxModel = QCheckBox(self.videoPlaybackPage)
+        self.CheckBoxModel.setObjectName(u"CheckBoxModel")
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.checkBox.sizePolicy().hasHeightForWidth())
-        self.checkBox.setSizePolicy(sizePolicy2)
+        sizePolicy2.setHeightForWidth(self.CheckBoxModel.sizePolicy().hasHeightForWidth())
+        self.CheckBoxModel.setSizePolicy(sizePolicy2)
         font3 = QFont()
         font3.setPointSize(12)
         font3.setHintingPreference(QFont.PreferNoHinting)
-        self.checkBox.setFont(font3)
-        self.checkBox.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+        self.CheckBoxModel.setFont(font3)
+        self.CheckBoxModel.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.verticalLayout_5.addWidget(self.checkBox)
+        self.verticalLayout_5.addWidget(self.CheckBoxModel)
 
         self.stackedWidget.addWidget(self.videoPlaybackPage)
 
@@ -275,7 +275,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -299,7 +299,7 @@ class Ui_MainWindow(object):
         self.saveModelSettingsButton.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043c\u043e\u0434\u0435\u043b\u0438", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043e\u0441\u043f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u0435 \u0432\u0438\u0434\u0435\u043e", None))
         self.video_label.setText(QCoreApplication.translate("MainWindow", u"\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0432\u0438\u0434\u0435\u043e", None))
-        self.checkBox.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0431\u043e\u043a\u0441\u044b \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
+        self.CheckBoxModel.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0431\u043e\u043a\u0441\u044b \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
         self.homeButton.setText(QCoreApplication.translate("MainWindow", u"\u0413\u043b\u0430\u0432\u043d\u0430\u044f", None))
         self.cameraSettingsButton_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043a\u0430\u043c\u0435\u0440\u044b", None))
         self.modelSettingsButton_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043c\u043e\u0434\u0435\u043b\u0438", None))
