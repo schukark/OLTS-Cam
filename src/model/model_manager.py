@@ -17,7 +17,8 @@ class ModelManager:
         "fps",
         "nms_thresh",
         "score_thresh",
-        "detections_per_image"
+        "detections_per_image",
+        "save_folder"
     ]
 
     def __init__(self):
@@ -134,18 +135,23 @@ class ModelManager:
 
             settings = {}
 
+            # Функция для безопасного чтения JSON с UTF-8
+            def read_json_utf8(path):
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+                except UnicodeDecodeError:
+                    with open(path, 'r', encoding='cp1251') as f:
+                        return json.load(f)
+
             if camera_settings_path.exists():
-                with open(camera_settings_path, "r") as f:
-                    camera_settings = json.load(f)
-                    settings.update(camera_settings)
+                settings.update(read_json_utf8(camera_settings_path))
             else:
                 self.error_msg = "Файл настроек камеры не найден"
                 return None
 
             if model_settings_path.exists():
-                with open(model_settings_path, "r") as f:
-                    model_settings = json.load(f)
-                    settings.update(model_settings)
+                settings.update(read_json_utf8(model_settings_path))
             else:
                 self.error_msg = "Файл настроек модели не найден"
                 return None
@@ -154,8 +160,22 @@ class ModelManager:
                 settings["fps"] = int(settings.get("fps"))
                 settings["nms_thresh"] = float(settings.get("threshold"))
                 settings["score_thresh"] = float(settings.get("threshold"))
-                settings["detections_per_image"] = int(
-                    settings.get("object_count"))
+                
+                # Гарантируем UTF-8 для save_folder
+                save_folder = settings.get("save_folder", "detections")
+                if isinstance(save_folder, str):
+                    try:
+                        settings["save_folder"] = save_folder.encode('utf-8').decode('utf-8')
+                    except UnicodeError:
+                        # Если не получается декодировать как UTF-8, пробуем другие кодировки
+                        try:
+                            settings["save_folder"] = save_folder.encode('latin1').decode('utf-8')
+                        except:
+                            settings["save_folder"] = "detections"
+                else:
+                    settings["save_folder"] = "detections"
+                    
+                settings["detections_per_image"] = int(settings.get("object_count"))
             except (TypeError, ValueError):
                 self.error_msg = "Данные из настроек не были загружены"
                 return None
@@ -179,8 +199,7 @@ class ModelManager:
         result = self._current_runner.predict_boxes()
 
         if self._current_runner.error_msg is not None:
-            self.error_msg = f"Ошибка обработки видеопотока:\
-                {self._current_runner.error_msg}"
+            self.error_msg = f"Ошибка обработки видеопотока: {self._current_runner.error_msg}"
             return
 
         if result is None:
@@ -193,29 +212,42 @@ class ModelManager:
             self.error_msg = "На кадре не обнаружено объектов"
             return
 
-        self.image1, self.image2 = self._current_runner.show_boxes(
-            img, boxes, labels)
+        self.image1, self.image2 = self._current_runner.show_boxes(img, boxes, labels)
         if self.image1 is None or self.image2 is None:
             self.error_msg = "Ошибка при отрисовке bounding boxes"
         else:
             self.error_msg = None
 
-        # Отправка данных обнаруженных объектов в базу данных
-        print("write: \n")
         if boxes is not None and labels is not None:
+            settings = self._get_settings()
+            base_save_folder = Path(settings.get("save_folder", "detections"))
             for box, label in zip(boxes, labels):
-                print(label +"\n")
-                # Создаем объект ObjectItem с данными обнаруженного объекта
-                object_item = ObjectItem(
-                    Name=label,  # Название объекта
-                    Time=str(datetime.now()),  # Время обнаружения
-                    PositionCoord=f"{box[0]},{box[1]},{box[2]},{box[3]}",  # Координаты bounding box
-                    PhotoPath="path/to/saved/image.jpg",  # Путь к сохраненному изображению
-                    ContID=1  # ID контейнера (можно получить из настроек или другим способом)
-                )
-                
-                # Отправляем объект в базу данных через db_manager
-                db_manager.push_objects(object_item)
+                try:
+                    # Создаем подпапку с именем метки
+                    label_folder = base_save_folder / label.strip()
+                    label_folder.mkdir(parents=True, exist_ok=True)
+                    
+                    # Путь к файлу
+                    photo_path = label_folder / "latest.jpg"
+                    
+                    # Сохраняем изображение
+                    if self.image2:
+                        self.image2.save(str(photo_path))
+                    
+                    # Создаем объект для базы данных
+                    object_item = ObjectItem(
+                        Name=label,
+                        Time=str(datetime.now()),
+                        PositionCoord=f"{box[0]},{box[1]},{box[2]},{box[3]}",
+                        PhotoPath=str(photo_path),
+                        ContID=1
+                    )
+                    
+                    db_manager.push_objects(object_item)
+                    
+                except Exception as e:
+                    print(f"Ошибка при сохранении {label}: {e}")
+                    continue
 
     def get_error(self) -> str:
         return self.error_msg
