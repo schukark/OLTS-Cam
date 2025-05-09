@@ -33,8 +33,8 @@ class ModelThreadController(QObject):
                 current_time = time()
                 if current_time - last_settings_check >= settings_check_interval:
                     current_settings_hash = self.model_manager.check_settings_hash()
-                    if (current_settings_hash != self.model_manager._current_settings_hash or 
-                        self.model_manager.reconnect):
+                    if (current_settings_hash != self.model_manager._current_settings_hash or
+                            self.model_manager.reconnect):
                         self.model_manager.update_settings()
                         if self.model_manager._current_runner:
                             target_fps = self.model_manager._current_runner.settings["fps"]
@@ -44,7 +44,7 @@ class ModelThreadController(QObject):
                 self.model_manager.write_to_db()
                 frame, boxes = self.model_manager.get_images()
                 error_message = self.model_manager.get_error()
-                
+
                 # Отправка сигнала в главный поток
                 self.update_signal.emit(frame, boxes, error_message)
 
@@ -75,8 +75,8 @@ if __name__ == '__main__':
     model_thread.start()
 
     ret = app.exec()
-    
+
     controller.stop()
     model_thread.join(1.0)
-    
+
     sys.exit(ret)

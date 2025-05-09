@@ -23,10 +23,11 @@ class ModelRunner:
         self.frame_lock = Lock()
         self.frame_ready = Event()
         self._stop_event = Event()
-        
+
         if self._init_model():
-            try:    
-                self.capture_thread = Thread(target=self._capture_frames, daemon=True)
+            try:
+                self.capture_thread = Thread(
+                    target=self._capture_frames, daemon=True)
                 self.capture_thread.start()
             except Exception as e:
                 self.error_msg = f"Thread start failed: {str(e)}"
@@ -50,7 +51,8 @@ class ModelRunner:
             self.capture.release()
 
         try:
-            self.capture = cv2.VideoCapture(self.settings["rtsp_url"], cv2.CAP_FFMPEG)
+            self.capture = cv2.VideoCapture(
+                self.settings["rtsp_url"], cv2.CAP_FFMPEG)
             if self.capture.isOpened():
                 self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
                 self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -103,9 +105,11 @@ class ModelRunner:
             self.frame_ready.clear()
 
         try:
-            img_tensor = torch.from_numpy(frame).permute(2, 0, 1).float() / 255.0
+            img_tensor = torch.from_numpy(
+                frame).permute(2, 0, 1).float() / 255.0
             prediction = self.model([img_tensor])[0]
-            labels = [self.weights.meta["categories"][i] for i in prediction["labels"]]
+            labels = [self.weights.meta["categories"][i]
+                      for i in prediction["labels"]]
             return img_tensor, prediction["boxes"].detach(), labels
         except Exception as e:
             self.error_msg = f"Prediction error: {str(e)}"
@@ -113,13 +117,15 @@ class ModelRunner:
 
     def show_boxes(self, img_tensor, boxes, labels):
         try:
-            img_np = (img_tensor.permute(1, 2, 0).detach().numpy() * 255).astype('uint8')
-            
+            img_np = (img_tensor.permute(1, 2, 0).detach().numpy()
+                      * 255).astype('uint8')
+
             if len(boxes) == 0:
                 h, w, ch = img_np.shape
-                img_qimage = QImage(img_np.data, w, h, 3 * w, QImage.Format_RGB888)
+                img_qimage = QImage(img_np.data, w, h, 3 *
+                                    w, QImage.Format_RGB888)
                 return img_qimage.copy(), img_qimage.copy()
-            
+
             box_img = draw_bounding_boxes(
                 torch.from_numpy(img_np).permute(2, 0, 1),
                 boxes=boxes,
@@ -133,7 +139,8 @@ class ModelRunner:
 
             h, w, ch = img_np.shape
             img_qimage = QImage(img_np.data, w, h, 3 * w, QImage.Format_RGB888)
-            box_qimage = QImage(box_img.data, w, h, 3 * w, QImage.Format_RGB888)
+            box_qimage = QImage(box_img.data, w, h, 3 *
+                                w, QImage.Format_RGB888)
 
             return img_qimage, box_qimage
         except Exception as e:
@@ -143,12 +150,12 @@ class ModelRunner:
     def release(self):
         """Properly clean up resources"""
         self._stop_event.set()
-        
+
         if hasattr(self, 'capture_thread') and self.capture_thread.is_alive():
             self.capture_thread.join(timeout=1.0)
 
         if hasattr(self, 'capture') and self.capture:
             self.capture.release()
             self.capture = None
-        
+
         self.model = None
