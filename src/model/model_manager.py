@@ -160,22 +160,25 @@ class ModelManager:
                 settings["fps"] = int(settings.get("fps"))
                 settings["nms_thresh"] = float(settings.get("threshold"))
                 settings["score_thresh"] = float(settings.get("threshold"))
-                
+
                 # Гарантируем UTF-8 для save_folder
                 save_folder = settings.get("save_folder", "detections")
                 if isinstance(save_folder, str):
                     try:
-                        settings["save_folder"] = save_folder.encode('utf-8').decode('utf-8')
+                        settings["save_folder"] = save_folder.encode(
+                            'utf-8').decode('utf-8')
                     except UnicodeError:
                         # Если не получается декодировать как UTF-8, пробуем другие кодировки
                         try:
-                            settings["save_folder"] = save_folder.encode('latin1').decode('utf-8')
+                            settings["save_folder"] = save_folder.encode(
+                                'latin1').decode('utf-8')
                         except:
                             settings["save_folder"] = "detections"
                 else:
                     settings["save_folder"] = "detections"
-                    
-                settings["detections_per_image"] = int(settings.get("object_count"))
+
+                settings["detections_per_image"] = int(
+                    settings.get("object_count"))
             except (TypeError, ValueError):
                 self.error_msg = "Данные из настроек не были загружены"
                 return None
@@ -198,6 +201,9 @@ class ModelManager:
 
         result = self._current_runner.predict_boxes()
 
+        if self._current_runner.error_msg == "Failed to read frame":
+            self.reconnect = True
+
         if self._current_runner.error_msg is not None:
             self.error_msg = f"Ошибка обработки видеопотока: {self._current_runner.error_msg}"
             return
@@ -212,7 +218,8 @@ class ModelManager:
             self.error_msg = "На кадре не обнаружено объектов"
             return
 
-        self.image1, self.image2 = self._current_runner.show_boxes(img, boxes, labels)
+        self.image1, self.image2 = self._current_runner.show_boxes(
+            img, boxes, labels)
         if self.image1 is None or self.image2 is None:
             self.error_msg = "Ошибка при отрисовке bounding boxes"
         else:
@@ -226,14 +233,14 @@ class ModelManager:
                     # Создаем подпапку с именем метки
                     label_folder = base_save_folder / label.strip()
                     label_folder.mkdir(parents=True, exist_ok=True)
-                    
+
                     # Путь к файлу
                     photo_path = label_folder / "latest.jpg"
-                    
+
                     # Сохраняем изображение
                     if self.image2:
                         self.image2.save(str(photo_path))
-                    
+
                     # Создаем объект для базы данных
                     object_item = ObjectItem(
                         Name=label,
@@ -242,9 +249,9 @@ class ModelManager:
                         PhotoPath=str(photo_path),
                         ContID=1
                     )
-                    
+
                     db_manager.push_objects(object_item)
-                    
+
                 except Exception as e:
                     print(f"Ошибка при сохранении {label}: {e}")
                     continue
