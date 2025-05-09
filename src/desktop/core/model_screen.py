@@ -190,9 +190,16 @@ class ModelScreen:
 
     def save_settings(self, settings: Dict):
         """Сохраняет настройки в файл"""
+        #self.window.runner_status = 1
+        
+        #while(self.window.runner_status == 1):
+        #    continue
+        self.window.update_frame(None, None, "Загрузка видео")
         os.makedirs(self.SETTINGS_PATH.parent, exist_ok=True)
         with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
+            
+        #self.window.runner_status = 2
 
     def load_settings(self):
         """Загружает настройки из файла"""

@@ -12,6 +12,7 @@ class ApplicationWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.cur_screen = 'home'
+        self.runner_status = 0
 
         # Инициализация экранов
         self.screens = {

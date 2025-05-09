@@ -81,7 +81,8 @@ class VideoScreen:
 
         # Рисуем текст ошибки
         painter = QPainter(pixmap)
-        painter.setPen(QColor(Qt.red))
+        if (message != "Загрузка видео"): painter.setPen(QColor(Qt.red))
+        else: painter.setPen(QColor(Qt.white))
         painter.setFont(QFont("Arial", 16))
         painter.drawText(pixmap.rect(), Qt.AlignCenter, message)
         painter.end()

@@ -1,35 +1,209 @@
 # model_manager.py
 from PySide6.QtGui import QImage
 from model.model_runner import ModelRunner
+import json
+from pathlib import Path
+import hashlib
+import threading
+import time
 
 
 class ModelManager:
+    REQUIRED_SETTINGS = [
+        "rtsp_url",
+        "fps",
+        "nms_thresh",
+        "score_thresh",
+        "detections_per_image"
+    ]
+
     def __init__(self):
-        self.model = ModelRunner()
+        self._current_runner = None
         self.error_msg = None
-        self.image1 = None  # QImage with boxes
-        self.image2 = None  # QImage original
+        self.image1 = None
+        self.image2 = None
+        self._current_settings_hash = None
+        self.reconnect = False
+        self.update_settings()
+
+    def _get_settings_hash(self, settings):
+        """Создает хеш текущих настроек для сравнения"""
+        settings_str = json.dumps(settings, sort_keys=True)
+        return hashlib.md5(settings_str.encode()).hexdigest()
+
+    def _check_settings_changed(self):
+        """Проверяет, изменились ли настройки"""
+        new_settings = self._get_settings()
+        if new_settings is None:  # Если настройки невалидны
+            return False, None, None
+        new_hash = self._get_settings_hash(new_settings)
+        return new_hash != self._current_settings_hash, new_settings, new_hash
+
+    def _validate_settings(self, settings):
+        """Проверяет наличие всех необходимых настроек"""
+        if not settings:
+            self.error_msg = "Настройки не найдены"
+            return False
+            
+        missing = [key for key in self.REQUIRED_SETTINGS if key not in settings]
+        if missing:
+            self.error_msg = f"Отсутствуют обязательные настройки: {', '.join(missing)}"
+            return False
+            
+        return True
+
+    def _create_runner_with_timeout(self, settings):
+        """Создает ModelRunner с таймаутом 5 секунд"""
+        if not self._validate_settings(settings):
+            return None, self.error_msg
+
+        runner = None
+        error = None
+        
+        def target():
+            nonlocal runner, error
+            try:
+                runner = ModelRunner(settings)
+                if runner.error_msg is not None:
+                    error = runner.error_msg
+                    runner.release()
+                    runner = None
+            except Exception as e:
+                error = f"Ошибка инициализации модели: {str(e)}"
+        
+        thread = threading.Thread(target=target)
+        thread.daemon = True
+        thread.start()
+        thread.join(timeout=5)
+        
+        if thread.is_alive():
+            print("self.reconnect: " + str(self.reconnect))
+            self.reconnect = True
+            error = "Превышено время ожидания подключения к камере (5 секунд)"
+            if runner is not None:
+                runner.release()
+            return None, error
+        
+        if runner is None and error is None:
+            print("self.reconnect: " + str(self.reconnect))
+            self.reconnect = True
+            error = "Не удалось подключиться к видеопотоку"
+            
+        return runner, error
+
+    def update_settings(self):
+        """Обновляет настройки и пересоздает ModelRunner при необходимости"""
+            
+        settings_changed, new_settings, new_hash = self._check_settings_changed()
+        
+        # Если настройки не изменились и не требуется реконнект
+        if not settings_changed and not self.reconnect and self._current_runner is not None:
+            return
+
+        # Сначала корректно завершаем текущий runner
+        if self._current_runner is not None:
+            self._current_runner.release()
+            self._current_runner = None
+
+        # Если настройки невалидны, не создаем новый runner
+        if new_settings is None:
+            return
+
+        # Сохраняем новые настройки и хеш
+        self._current_settings_hash = new_hash
+        
+        # Создаем новый runner с новыми настройками с таймаутом
+        print("Создание нового ModelRunner")
+        self._current_runner, error = self._create_runner_with_timeout(new_settings)
+        
+        if self._current_runner is None:
+            rtsp_url = new_settings.get("rtsp_url", "неизвестный URL")
+            self.error_msg = (f"Не удалось подключиться к камере по адресу: {rtsp_url}\n"
+                            f"Причина: {error}")
+            self.reconnect = True  # Устанавливаем флаг для повторной попытки
+            return
+        
+        print(self._current_runner.settings)
+        self.error_msg = None
+
+    def _get_settings(self):
+        try:
+            settings_dir = Path(__file__).parent.parent.parent / "settings"
+            camera_settings_path = settings_dir / "camera_settings.json"
+            model_settings_path = settings_dir / "model_settings.json"
+            
+            if not settings_dir.exists():
+                self.error_msg = "Директория с настройками не найдена"
+                return None
+                
+            settings = {}
+            
+            # Загружаем настройки камеры
+            if camera_settings_path.exists():
+                with open(camera_settings_path, "r") as f:
+                    camera_settings = json.load(f)
+                    settings.update(camera_settings)
+            else:
+                self.error_msg = "Файл настроек камеры не найден"
+                return None
+                    
+            # Загружаем настройки модели
+            if model_settings_path.exists():
+                with open(model_settings_path, "r") as f:
+                    model_settings = json.load(f)
+                    settings.update(model_settings)
+            else:
+                self.error_msg = "Файл настроек модели не найден"
+                return None
+            
+            # Преобразуем типы данных
+            try:
+                settings["fps"] = int(settings.get("fps"))
+                settings["nms_thresh"] = float(settings.get("threshold"))
+                settings["score_thresh"] = float(settings.get("threshold"))
+                settings["detections_per_image"] = int(settings.get("object_count"))
+            except (TypeError, ValueError) as e:
+                self.error_msg = f"Данные из настроек не были загружены"
+                return None
+            
+            return settings
+            
+        except Exception as e:
+            self.error_msg = f"Ошибка загрузки настроек: {str(e)}"
+            return None
+
+
+    def check_settings_hash(self):
+        """Проверяет и обновляет настройки при необходимости"""
+        tmp_settings = self._get_settings()
+        return self._get_settings_hash(tmp_settings)
 
     def write_to_db(self):
-        result = self.model.predict_boxes()
         
-        if self.model.error_msg is not None:
-            self.error_msg = self.model.error_msg
+        if self._current_runner is None:
+            if not self.error_msg:
+                self.error_msg = "Не удалось подключиться к видеопотоку"
+            return
+
+        result = self._current_runner.predict_boxes()
+        
+        if self._current_runner.error_msg is not None:
+            self.error_msg = f"Ошибка обработки видеопотока: {self._current_runner.error_msg}"
             return
 
         if result is None:
-            self.error_msg = "Prediction failed"
+            self.error_msg = "Не удалось обработать кадр с камеры"
             return
 
         img, boxes, labels = result
         
         if boxes is None or labels is None:
-            self.error_msg = "No boxes detected"
+            self.error_msg = "На кадре не обнаружено объектов"
             return
 
-        self.image1, self.image2 = self.model.show_boxes(img, boxes, labels)
+        self.image1, self.image2 = self._current_runner.show_boxes(img, boxes, labels)
         if self.image1 is None or self.image2 is None:
-            self.error_msg = "Failed to draw boxes"
+            self.error_msg = "Ошибка при отрисовке bounding boxes"
         else:
             self.error_msg = None
 
@@ -38,3 +212,7 @@ class ModelManager:
 
     def get_images(self) -> tuple[QImage, QImage]:
         return self.image1, self.image2
+    
+    def __del__(self):
+        if self._current_runner is not None:
+            self._current_runner.release()
