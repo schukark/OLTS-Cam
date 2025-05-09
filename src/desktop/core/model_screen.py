@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 from typing import Dict, Tuple
 from PySide6.QtWidgets import QMessageBox, QFileDialog
@@ -49,16 +50,19 @@ class ModelSettingsValidator:
 class ModelScreen:
     SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / \
         "settings" / "model_settings.json"
+    ENV_PATH = Path(__file__).parent.parent.parent.parent / ".env"
 
     def __init__(self, ui, window):
         self.ui = ui
         self.window = window
         self.validator = ModelSettingsValidator()
         self.setup_connections()
+        self.current_token = self.load_current_token()  # Загружаем текущий токен
 
         # Создаем файл с настройками по умолчанию, если его нет
         tmp = Path(__file__).parent.parent.parent.parent / "camera"
         default_settings = {
+            'telegram_token': '',
             'object_count': '',
             'fps': '',
             'threshold': '0.5',
@@ -75,6 +79,42 @@ class ModelScreen:
                 json.dump(default_settings, f, ensure_ascii=False, indent=4)
 
         self.load_settings()
+
+    def load_current_token(self) -> str:
+        """Загружает текущий токен из .env файла"""
+        if self.ENV_PATH.exists():
+            with open(self.ENV_PATH, 'r', encoding='utf-8') as f:
+                for line in f:
+                    key, value = line.strip().split('=', 1)
+                    os.environ[key] = value
+            return os.getenv('TELOXIDE_TOKEN', '')
+        return ''
+
+    def save_token_to_env(self, token: str):
+        """Сохраняет токен в .env файл"""
+        env_lines = []
+        token_found = False
+        
+        # Читаем существующий файл, если он есть
+        if self.ENV_PATH.exists():
+            with open(self.ENV_PATH, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line.startswith('TELOXIDE_TOKEN='):
+                        env_lines.append(f'TELOXIDE_TOKEN={token}\n')
+                        token_found = True
+                    else:
+                        env_lines.append(line)
+        
+        # Если токен не найден, добавляем новую строку
+        if not token_found:
+            env_lines.append(f'TELOXIDE_TOKEN={token}\n')
+        
+        # Записываем обратно в файл
+        with open(self.ENV_PATH, 'w', encoding='utf-8') as f:
+            f.writelines(env_lines)
+        
+        # Обновляем текущий токен
+        self.current_token = token
 
     def setup_connections(self):
         """Подключение сигналов"""
@@ -102,6 +142,7 @@ class ModelScreen:
     def get_all_settings(self) -> Dict:
         """Получает все настройки в виде словаря"""
         return {
+            'telegram_token': self.ui.token.text().strip(),
             'object_count': self.ui.videoObjectCount.text().strip(),
             'fps': self.ui.fpsInput.text().strip(),
             'threshold': self.ui.objectThresholdInput.text().strip(),
@@ -110,6 +151,7 @@ class ModelScreen:
 
     def set_all_settings(self, settings: Dict):
         """Устанавливает все настройки из словаря"""
+        self.ui.token.setText(settings.get('telegram_token', ''))
         self.ui.videoObjectCount.setText(settings.get('object_count', ''))
         self.ui.fpsInput.setText(settings.get('fps', ''))
 
@@ -126,7 +168,7 @@ class ModelScreen:
 
     def clear_highlight(self):
         """Убирает подсветку со всех полей"""
-        for field in ['videoObjectCount', 'fpsInput',
+        for field in ['token', 'videoObjectCount', 'fpsInput',
                       'objectThresholdInput', 'saveFolderInput']:
             getattr(self.ui, field).setStyleSheet("")
 
@@ -181,6 +223,11 @@ class ModelScreen:
             return
 
         try:
+            # Проверяем, изменился ли токен
+            new_token = settings['telegram_token']
+            if new_token and new_token != self.current_token:
+                self.save_token_to_env(new_token)
+            
             self.save_settings(settings)
             QMessageBox.information(
                 None, "Успех", "Настройки модели успешно сохранены!")
@@ -190,16 +237,10 @@ class ModelScreen:
 
     def save_settings(self, settings: Dict):
         """Сохраняет настройки в файл"""
-        #self.window.runner_status = 1
-        
-        #while(self.window.runner_status == 1):
-        #    continue
         self.window.update_frame(None, None, "Загрузка видео")
         os.makedirs(self.SETTINGS_PATH.parent, exist_ok=True)
         with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
-            
-        #self.window.runner_status = 2
 
     def load_settings(self):
         """Загружает настройки из файла"""
@@ -208,6 +249,8 @@ class ModelScreen:
                 with open(self.SETTINGS_PATH, 'r', encoding='utf-8') as f:
                     settings = json.load(f)
                     self.set_all_settings(settings)
+                    # Обновляем текущий токен при загрузке
+                    self.current_token = settings.get('telegram_token', '')
         except Exception as e:
             QMessageBox.warning(
                 None,

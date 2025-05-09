@@ -86,11 +86,10 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = ApplicationWindow()
     db_manager = DatabaseManager()
-    window.show()
-
     controller = ModelThreadController(app, window, db_manager)
     controller.update_signal.connect(window.update_frame)
-
+    window.show()
+    
     model_thread = Thread(target=controller.run)
     model_thread.daemon = True
     model_thread.start()
