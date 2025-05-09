@@ -24,6 +24,7 @@ class ModelManager:
         self.image2 = None
         self._current_settings_hash = None
         self.reconnect = False
+        self._lock = threading.Lock()
         self.update_settings()
 
     def _get_settings_hash(self, settings):
@@ -77,7 +78,6 @@ class ModelManager:
         thread.join(timeout=5)
         
         if thread.is_alive():
-            print("self.reconnect: " + str(self.reconnect))
             self.reconnect = True
             error = "Превышено время ожидания подключения к камере (5 секунд)"
             if runner is not None:
@@ -85,7 +85,6 @@ class ModelManager:
             return None, error
         
         if runner is None and error is None:
-            print("self.reconnect: " + str(self.reconnect))
             self.reconnect = True
             error = "Не удалось подключиться к видеопотоку"
             
@@ -93,38 +92,31 @@ class ModelManager:
 
     def update_settings(self):
         """Обновляет настройки и пересоздает ModelRunner при необходимости"""
+        with self._lock:
+            settings_changed, new_settings, new_hash = self._check_settings_changed()
             
-        settings_changed, new_settings, new_hash = self._check_settings_changed()
-        
-        # Если настройки не изменились и не требуется реконнект
-        if not settings_changed and not self.reconnect and self._current_runner is not None:
-            return
+            if not settings_changed and not self.reconnect and self._current_runner is not None:
+                return
 
-        # Сначала корректно завершаем текущий runner
-        if self._current_runner is not None:
-            self._current_runner.release()
-            self._current_runner = None
+            if self._current_runner is not None:
+                self._current_runner.release()
+                self._current_runner = None
 
-        # Если настройки невалидны, не создаем новый runner
-        if new_settings is None:
-            return
+            if new_settings is None:
+                return
 
-        # Сохраняем новые настройки и хеш
-        self._current_settings_hash = new_hash
-        
-        # Создаем новый runner с новыми настройками с таймаутом
-        print("Создание нового ModelRunner")
-        self._current_runner, error = self._create_runner_with_timeout(new_settings)
-        
-        if self._current_runner is None:
-            rtsp_url = new_settings.get("rtsp_url", "неизвестный URL")
-            self.error_msg = (f"Не удалось подключиться к камере по адресу: {rtsp_url}\n"
-                            f"Причина: {error}")
-            self.reconnect = True  # Устанавливаем флаг для повторной попытки
-            return
-        
-        print(self._current_runner.settings)
-        self.error_msg = None
+            self._current_settings_hash = new_hash
+            
+            self._current_runner, error = self._create_runner_with_timeout(new_settings)
+            
+            if self._current_runner is None:
+                rtsp_url = new_settings.get("rtsp_url", "неизвестный URL")
+                self.error_msg = (f"Не удалось подключиться к камере по адресу: {rtsp_url}\n"
+                                f"Причина: {error}")
+                self.reconnect = True
+                return
+            
+            self.error_msg = None
 
     def _get_settings(self):
         try:
@@ -138,7 +130,6 @@ class ModelManager:
                 
             settings = {}
             
-            # Загружаем настройки камеры
             if camera_settings_path.exists():
                 with open(camera_settings_path, "r") as f:
                     camera_settings = json.load(f)
@@ -147,7 +138,6 @@ class ModelManager:
                 self.error_msg = "Файл настроек камеры не найден"
                 return None
                     
-            # Загружаем настройки модели
             if model_settings_path.exists():
                 with open(model_settings_path, "r") as f:
                     model_settings = json.load(f)
@@ -156,7 +146,6 @@ class ModelManager:
                 self.error_msg = "Файл настроек модели не найден"
                 return None
             
-            # Преобразуем типы данных
             try:
                 settings["fps"] = int(settings.get("fps"))
                 settings["nms_thresh"] = float(settings.get("threshold"))
@@ -172,14 +161,11 @@ class ModelManager:
             self.error_msg = f"Ошибка загрузки настроек: {str(e)}"
             return None
 
-
     def check_settings_hash(self):
-        """Проверяет и обновляет настройки при необходимости"""
         tmp_settings = self._get_settings()
         return self._get_settings_hash(tmp_settings)
 
     def write_to_db(self):
-        
         if self._current_runner is None:
             if not self.error_msg:
                 self.error_msg = "Не удалось подключиться к видеопотоку"

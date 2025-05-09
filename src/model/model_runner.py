@@ -19,19 +19,17 @@ class ModelRunner:
         self.capture = None
         self.model = None
         self.error_msg = None
-        self.is_running = False
         self.latest_frame = None
         self.frame_lock = Lock()
         self.frame_ready = Event()
-        self._should_stop = False
+        self._stop_event = Event()
         
-        flag = self._init_model()
-        if flag:
+        if self._init_model():
             try:    
                 self.capture_thread = Thread(target=self._capture_frames, daemon=True)
                 self.capture_thread.start()
             except Exception as e:
-                print("Thread ended/failed")
+                self.error_msg = f"Thread start failed: {str(e)}"
 
     def _init_model(self):
         try:
@@ -51,24 +49,27 @@ class ModelRunner:
         if self.capture and self.capture.isOpened():
             self.capture.release()
 
-        self.capture = cv2.VideoCapture(self.settings["rtsp_url"], cv2.CAP_FFMPEG)
-        if self.capture.isOpened():
-            print(self.settings["fps"])
-            self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
-            self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        else:
-            self.error_msg = "Failed to open video capture"
+        try:
+            self.capture = cv2.VideoCapture(self.settings["rtsp_url"], cv2.CAP_FFMPEG)
+            if self.capture.isOpened():
+                self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
+                self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                return True
+            else:
+                self.error_msg = "Failed to open video capture"
+                return False
+        except Exception as e:
+            self.error_msg = f"Capture init error: {str(e)}"
             return False
-        return True
 
     def _capture_frames(self):
-        while not self._should_stop:
-            if not self.capture or not self.capture.isOpened():
-                if not self._init_capture():
-                    sleep(0.1)
-                    continue
-
+        while not self._stop_event.is_set():
             try:
+                if not self.capture or not self.capture.isOpened():
+                    if not self._reconnect_capture():
+                        sleep(0.1)
+                        continue
+
                 ret, frame = self.capture.read()
                 if ret:
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -77,9 +78,16 @@ class ModelRunner:
                         self.frame_ready.set()
                 else:
                     self.error_msg = "Failed to read frame"
-                    sleep(0.1)
+                    if not self._reconnect_capture():
+                        sleep(0.1)
             except Exception as e:
-                print(f"Поток завершился {e}")
+                print(f"Capture error: {e}")
+                self._reconnect_capture()
+
+    def _reconnect_capture(self):
+        if self.capture:
+            self.capture.release()
+        return self._init_capture()
 
     def predict_boxes(self):
         if not self.frame_ready.wait(timeout=5.0):
@@ -92,6 +100,7 @@ class ModelRunner:
                 return None
 
             frame = self.latest_frame.copy()
+            self.frame_ready.clear()
 
         try:
             img_tensor = torch.from_numpy(frame).permute(2, 0, 1).float() / 255.0
@@ -132,10 +141,14 @@ class ModelRunner:
             return None, None
 
     def release(self):
-        """Корректно завершает работу runner"""
+        """Properly clean up resources"""
+        self._stop_event.set()
         
-        self._should_stop = True
-        if hasattr(self, 'capture') and self.capture and self.capture.isOpened():
+        if hasattr(self, 'capture_thread') and self.capture_thread.is_alive():
+            self.capture_thread.join(timeout=1.0)
+
+        if hasattr(self, 'capture') and self.capture:
             self.capture.release()
-        self.capture = None
+            self.capture = None
+        
         self.model = None
