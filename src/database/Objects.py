@@ -1,6 +1,7 @@
 import sqlite3
-from .tables import ObjectItem
+from .tables.ObjectItem import ObjectItem
 from typing import Optional
+
 
 class Objects:
 
@@ -13,18 +14,19 @@ class Objects:
                 Time TEXT,
                 PositionCoord TEXT NOT NULL,
                 ContID INTEGER NOT NULL,
-                RecordID INTEGER NOT NULL,
+                PhotoPath TEXT NOT NULL,
                 FOREIGN KEY (ContID) REFERENCES Containers(ContID),
-                FOREIGN KEY (RecordID) REFERENCES Records(RecordID)
             )
         '''
         self.connection.execute(query)
         self.connection.commit()
 
     def create(self, item: ObjectItem) -> int:
-        query = "INSERT INTO Objects (Name, PositionCoord, ContID, RecordID) VALUES (?, ?, ?, ?)"
+        query = "INSERT INTO Objects (Name, Time, PositionCoord, ContID, PhotoPath) VALUES (?, ?, ?, ?, ?)"
         cursor = self.connection.cursor()
-        cursor.execute(query, (item.Name, item.Time, item.PositionCoord, item.ContID, item.RecordID))
+        cursor.execute(query, (item.Name, item.Time,
+
+                       item.Position_coord, item.Cont_id, item.PhotoPath))
         self.connection.commit()
         return cursor.lastrowid
 
