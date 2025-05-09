@@ -5,6 +5,8 @@ import logging
 
 import uvicorn
 from fastapi import FastAPI, Response
+
+from utils.logger import setup_logger
 from .models import ObjectPhoto, Receiver, Settings
 from pydantic_core import from_json
 
@@ -15,14 +17,7 @@ from server.image_util import show_boxes
 app = FastAPI()
 db_conn = None
 
-logging.getLogger(__name__)
-logging.basicConfig(
-    filename="server_logs.txt",
-    filemode='a',
-    format='%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    level=logging.DEBUG
-)
+setup_logger(__name__)
 
 
 @app.get("/settings/{rcv}")

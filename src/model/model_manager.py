@@ -1,6 +1,7 @@
 # model_manager.py
 import hashlib
 import json
+import logging
 import threading
 from pathlib import Path
 
@@ -9,6 +10,9 @@ from PySide6.QtGui import QImage
 from model.model_runner import ModelRunner
 from datetime import datetime
 from database.tables.ObjectItem import ObjectItem
+
+from utils.logger import setup_logger
+setup_logger(__name__)
 
 
 class ModelManager:
@@ -96,15 +100,19 @@ class ModelManager:
 
     def update_settings(self):
         """Обновляет настройки и пересоздает ModelRunner при необходимости"""
+        logging.info("Update settings called")
         with self._lock:
             settings_changed, new_settings, new_hash = self._check_settings_changed()
 
-            if not settings_changed and not self.reconnect and self._current_runner is not None:
+            if not self.reconnect and not settings_changed and \
+                    self._current_runner is not None:
+                logging.debug("Nothing to update")
                 return
 
             if self._current_runner is not None:
                 self._current_runner.release()
                 self._current_runner = None
+                logging.debug("Released previous runner")
 
             if new_settings is None:
                 return
@@ -120,6 +128,8 @@ class ModelManager:
                                   f"Причина: {error}")
                 self.reconnect = True
                 return
+
+            logging.debug("Runner created successfully")
 
             self.error_msg = None
 
@@ -158,7 +168,7 @@ class ModelManager:
 
             try:
                 settings["fps"] = int(settings.get("fps"))
-                settings["nms_thresh"] = "0.3"
+                settings["nms_thresh"] = 0.3
                 settings["score_thresh"] = float(settings.get("threshold"))
 
                 # Гарантируем UTF-8 для save_folder
@@ -194,7 +204,11 @@ class ModelManager:
         return self._get_settings_hash(tmp_settings)
 
     def write_to_db(self, db_manager):
+        logging.info("Initiating write to db and screen")
+
         if self._current_runner is None:
+            logging.debug("Current runner is None")
+
             if not self.error_msg:
                 self.error_msg = "Не удалось подключиться к видеопотоку"
             return
@@ -202,6 +216,7 @@ class ModelManager:
         result = self._current_runner.predict_boxes()
 
         if self._current_runner.error_msg == "Failed to read frame":
+            logging.debug("Setting reconnect to True")
             self.reconnect = True
 
         if self._current_runner.error_msg is not None:
@@ -226,6 +241,7 @@ class ModelManager:
             self.error_msg = None
 
         if boxes is not None and labels is not None:
+            logging.debug("Boxes and labels are not None, continuing")
             settings = self._get_settings()
             base_save_folder = Path(settings.get("save_folder", "detections"))
             for box, label in zip(boxes, labels):
@@ -233,6 +249,7 @@ class ModelManager:
                     # Создаем подпапку с именем метки
                     label_folder = base_save_folder / label.strip()
                     label_folder.mkdir(parents=True, exist_ok=True)
+                    logging.debug("Creating folder {label_folder}")
 
                     # Путь к файлу
                     photo_path = label_folder / "latest.jpg"
@@ -240,6 +257,7 @@ class ModelManager:
                     # Сохраняем изображение
                     if self.image1:
                         self.image1.save(str(photo_path))
+                        logging.debug("Saving image to {photo_path}")
 
                     # Создаем объект для базы данных
                     object_item = ObjectItem(
@@ -252,6 +270,7 @@ class ModelManager:
                     )
 
                     db_manager.push_objects(object_item)
+                    logging.info("Pushed pbjects to db manager")
 
                 except Exception as e:
                     print(f"Ошибка при сохранении {label}: {e}")

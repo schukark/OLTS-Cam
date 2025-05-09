@@ -1,3 +1,4 @@
+import logging
 import sys
 from time import sleep, time
 from threading import Thread
@@ -10,6 +11,12 @@ from model.model_manager import ModelManager
 
 from database.DatabaseManager import DatabaseManager
 from server.server import run_server
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+root_logger.addHandler(console_handler)
 
 
 class ModelThreadController(QObject):
@@ -91,6 +98,8 @@ if __name__ == '__main__':
     controller.update_signal.connect(window.update_frame)
     window.show()
 
+    root_logger.info("Application started")
+
     model_thread = Thread(target=controller.run)
     model_thread.daemon = True
     model_thread.start()
@@ -104,5 +113,7 @@ if __name__ == '__main__':
     controller.stop()
     model_thread.join(1.0)
     server_thread.join(1.0)
+
+    root_logger.info("Application exited")
 
     sys.exit(ret)

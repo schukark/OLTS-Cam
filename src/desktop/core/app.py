@@ -5,6 +5,10 @@ from .camera_screen import CameraScreen
 from .model_screen import ModelScreen
 from .video_screen import VideoScreen
 
+import logging
+from utils.logger import setup_logger
+setup_logger(__name__)
+
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -47,6 +51,7 @@ class ApplicationWindow(QMainWindow):
             self.screens['camera'].load_settings()
             self.screens['camera'].clear_highlight()
 
+        logging.debug("Switched to screen: {screen_name}")
         self.ui.stackedWidget.setCurrentWidget(screen_map[screen_name])
         self.cur_screen = screen_name
 

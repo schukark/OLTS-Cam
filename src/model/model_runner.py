@@ -12,6 +12,10 @@ from torchvision.models.detection import \
     ssdlite320_mobilenet_v3_large as model_create
 from torchvision.utils import draw_bounding_boxes
 
+import logging
+from utils.logger import setup_logger
+setup_logger(__name__)
+
 
 class ModelRunner:
     def __init__(self, settings):
@@ -57,9 +61,11 @@ class ModelRunner:
             if self.capture.isOpened():
                 self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
                 self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                logging.debug("cv2 Capture is opened successfully")
                 return True
             else:
                 self.error_msg = "Failed to open video capture"
+                logging.debug("Failed to create cv2 capture")
                 return False
         except Exception as e:
             self.error_msg = f"Capture init error: {str(e)}"
@@ -93,17 +99,20 @@ class ModelRunner:
         return self._init_capture()
 
     def predict_boxes(self):
+        logging.info("Predicting boxes")
         if not self.frame_ready.wait(timeout=5.0):
             self.error_msg = "No frames available yet (timeout)"
             return None
 
         with self.frame_lock:
             if self.latest_frame is None:
+                logging.debug("Latest frame is None")
                 self.error_msg = "No frames available"
                 return None
 
             frame = self.latest_frame.copy()
             self.frame_ready.clear()
+            logging.debug("Consumed latest frame")
 
         try:
             img_tensor = torch.from_numpy(
@@ -111,17 +120,20 @@ class ModelRunner:
             prediction = self.model([img_tensor])[0]
             labels = [self.weights.meta["categories"][i]
                       for i in prediction["labels"]]
+            logging.debug("Computed predictions and labels")
             return img_tensor, prediction["boxes"].detach(), labels
         except Exception as e:
             self.error_msg = f"Prediction error: {str(e)}"
             return None
 
     def show_boxes(self, img_tensor, boxes, labels):
+        logging.info("Called show_boxes")
         try:
             img_np = (img_tensor.permute(1, 2, 0).detach().numpy()
                       * 255).astype('uint8')
 
             if len(boxes) == 0:
+                logging.debug("Received image with no boxes")
                 h, w, ch = img_np.shape
                 img_qimage = QImage(img_np.data, w, h, 3 *
                                     w, QImage.Format_RGB888)
@@ -137,6 +149,7 @@ class ModelRunner:
                 font=os.path.join(os.path.dirname(__file__), "arial.ttf")
             )
             box_img = box_img.permute(1, 2, 0).numpy()
+            logging.debug("Computed output image")
 
             h, w, ch = img_np.shape
             img_qimage = QImage(img_np.data, w, h, ch *
@@ -155,9 +168,11 @@ class ModelRunner:
 
         if hasattr(self, 'capture_thread') and self.capture_thread.is_alive():
             self.capture_thread.join(timeout=1.0)
+            logging.debug("Waiting for the capture thread to join")
 
         if hasattr(self, 'capture') and self.capture:
             self.capture.release()
             self.capture = None
+            logging.debug("Released capture")
 
         self.model = None

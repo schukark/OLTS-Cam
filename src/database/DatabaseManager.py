@@ -9,14 +9,8 @@ from .Container import Container
 from .Objects import Objects
 from .tables.ObjectItem import ObjectItem
 
-logging.getLogger(__name__)
-logging.basicConfig(
-    filename="db_manager_logs.txt",
-    filemode='a',
-    format='%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    level=logging.DEBUG
-)
+from utils.logger import setup_logger
+setup_logger(__name__)
 
 
 class DatabaseManager:
