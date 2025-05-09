@@ -7,6 +7,8 @@ from pathlib import Path
 from PySide6.QtGui import QImage
 
 from model.model_runner import ModelRunner
+from datetime import datetime
+from database.tables.ObjectItem import ObjectItem
 
 
 class ModelManager:
@@ -168,7 +170,7 @@ class ModelManager:
         tmp_settings = self._get_settings()
         return self._get_settings_hash(tmp_settings)
 
-    def write_to_db(self):
+    def write_to_db(self, db_manager):
         if self._current_runner is None:
             if not self.error_msg:
                 self.error_msg = "Не удалось подключиться к видеопотоку"
@@ -197,6 +199,23 @@ class ModelManager:
             self.error_msg = "Ошибка при отрисовке bounding boxes"
         else:
             self.error_msg = None
+
+        # Отправка данных обнаруженных объектов в базу данных
+        print("write: \n")
+        if boxes is not None and labels is not None:
+            for box, label in zip(boxes, labels):
+                print(label +"\n")
+                # Создаем объект ObjectItem с данными обнаруженного объекта
+                object_item = ObjectItem(
+                    Name=label,  # Название объекта
+                    Time=str(datetime.now()),  # Время обнаружения
+                    PositionCoord=f"{box[0]},{box[1]},{box[2]},{box[3]}",  # Координаты bounding box
+                    PhotoPath="path/to/saved/image.jpg",  # Путь к сохраненному изображению
+                    ContID=1  # ID контейнера (можно получить из настроек или другим способом)
+                )
+                
+                # Отправляем объект в базу данных через db_manager
+                db_manager.push_objects(object_item)
 
     def get_error(self) -> str:
         return self.error_msg

@@ -15,7 +15,7 @@ class Objects:
                 PositionCoord TEXT NOT NULL,
                 ContID INTEGER NOT NULL,
                 PhotoPath TEXT NOT NULL,
-                FOREIGN KEY (ContID) REFERENCES Containers(ContID),
+                FOREIGN KEY (ContID) REFERENCES Containers(ContID)
             )
         '''
         self.connection.execute(query)
@@ -25,8 +25,7 @@ class Objects:
         query = "INSERT INTO Objects (Name, Time, PositionCoord, ContID, PhotoPath) VALUES (?, ?, ?, ?, ?)"
         cursor = self.connection.cursor()
         cursor.execute(query, (item.Name, item.Time,
-
-                       item.Position_coord, item.Cont_id, item.PhotoPath))
+                       item.PositionCoord, item.ContID, item.PhotoPath))  # Исправлено здесь
         self.connection.commit()
         return cursor.lastrowid
 
@@ -35,7 +34,14 @@ class Objects:
         cursor = self.connection.cursor()
         cursor.execute(query, (obj_id,))
         row = cursor.fetchone()
-        return ObjectItem(*row) if row else None
+        # Добавляем ObjrecID в создание ObjectItem
+        return ObjectItem(
+            Name=row[1],
+            Time=row[2],
+            PositionCoord=row[3],
+            PhotoPath=row[5],
+            ContID=row[4]
+        ) if row else None
 
     def delete(self, obj_id: int) -> bool:
         query = "DELETE FROM Objects WHERE ObjrecID = ?"

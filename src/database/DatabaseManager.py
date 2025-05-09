@@ -1,8 +1,8 @@
 from threading import Lock
 from time import sleep
-from Container import Container
-from Objects import Objects
-from tables.ObjectItem import ObjectItem
+from .Container import Container
+from .Objects import Objects
+from .tables.ObjectItem import ObjectItem
 import os
 import sqlite3
 from typing import List, Optional, Dict, Any
