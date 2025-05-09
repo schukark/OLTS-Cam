@@ -137,7 +137,7 @@
            </size>
           </property>
           <property name="echoMode">
-           <enum>QLineEdit::EchoMode::Password</enum>
+           <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
           </property>
           <property name="placeholderText">
            <string>Введите пароль камеры</string>
@@ -203,10 +203,32 @@
            </font>
           </property>
           <property name="text">
-           <string>Настройка модели и базы данных</string>
+           <string>Настройка модели, базы данных и файловой системы</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="token">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="inputMethodHints">
+           <set>Qt::InputMethodHint::ImhNoAutoUppercase|Qt::InputMethodHint::ImhNoPredictiveText|Qt::InputMethodHint::ImhSensitiveData</set>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="echoMode">
+           <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
+          </property>
+          <property name="placeholderText">
+           <string>Введите токет к Telegram-боту</string>
           </property>
          </widget>
         </item>

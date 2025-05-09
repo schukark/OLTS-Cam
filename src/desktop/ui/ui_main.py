@@ -81,7 +81,7 @@ class Ui_MainWindow(object):
         self.cameraPasswordInput = QLineEdit(self.cameraSettingsPage)
         self.cameraPasswordInput.setObjectName(u"cameraPasswordInput")
         self.cameraPasswordInput.setMinimumSize(QSize(0, 40))
-        self.cameraPasswordInput.setEchoMode(QLineEdit.EchoMode.Password)
+        self.cameraPasswordInput.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
 
         self.verticalLayout_3.addWidget(self.cameraPasswordInput)
 
@@ -113,6 +113,14 @@ class Ui_MainWindow(object):
         self.label_3.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_4.addWidget(self.label_3)
+
+        self.token = QLineEdit(self.modelSettingsPage)
+        self.token.setObjectName(u"token")
+        self.token.setMinimumSize(QSize(0, 40))
+        self.token.setInputMethodHints(Qt.InputMethodHint.ImhNoAutoUppercase|Qt.InputMethodHint.ImhNoPredictiveText|Qt.InputMethodHint.ImhSensitiveData)
+        self.token.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
+
+        self.verticalLayout_4.addWidget(self.token)
 
         self.videoObjectCount = QLineEdit(self.modelSettingsPage)
         self.videoObjectCount.setObjectName(u"videoObjectCount")
@@ -296,7 +304,9 @@ class Ui_MainWindow(object):
         self.cameraPasswordInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c \u043a\u0430\u043c\u0435\u0440\u044b", None))
         self.rtspUrlInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 RTSP URL", None))
         self.saveCameraSettingsButton.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043a\u0430\u043c\u0435\u0440\u044b", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043c\u043e\u0434\u0435\u043b\u0438 \u0438 \u0431\u0430\u0437\u044b \u0434\u0430\u043d\u043d\u044b\u0445", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043c\u043e\u0434\u0435\u043b\u0438, \u0431\u0430\u0437\u044b \u0434\u0430\u043d\u043d\u044b\u0445 \u0438 \u0444\u0430\u0439\u043b\u043e\u0432\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c\u044b", None))
+        self.token.setText("")
+        self.token.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0442\u043e\u043a\u0435\u0442 \u043a Telegram-\u0431\u043e\u0442\u0443", None))
         self.videoObjectCount.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0440\u0430\u0441\u043f\u043e\u0437\u043d\u0430\u0432\u0430\u0435\u043c\u044b\u0445 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432 \u0437\u0430 \u043a\u0430\u0434\u0440 (\u043e\u0442 3 \u0434\u043e 15)", None))
         self.fpsInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u043a\u0430\u0434\u0440\u043e\u0432 \u0432 \u0441\u0435\u043a\u0443\u043d\u0434\u0443", None))
         self.objectThresholdInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u043e\u0440\u043e\u0433 \u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0446\u0438\u0438 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
