@@ -4,8 +4,9 @@ from typing import Any, Dict, Optional
 
 import uvicorn
 from fastapi import FastAPI, Response
-from models import ObjectPhoto, Receiver, Settings
+from .models import ObjectPhoto, Receiver, Settings
 from pydantic_core import from_json
+
 
 from database.DatabaseManager import DatabaseManager
 from server.image_util import show_boxes

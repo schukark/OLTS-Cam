@@ -1,6 +1,6 @@
 import sys
 from time import sleep, time
-from threading import Thread, Timer
+from threading import Thread
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QObject, Signal, QTimer
@@ -9,6 +9,7 @@ from desktop.core.app import ApplicationWindow
 from model.model_manager import ModelManager
 
 from database.DatabaseManager import DatabaseManager
+from server.server import run_server
 
 
 class ModelThreadController(QObject):
@@ -22,7 +23,7 @@ class ModelThreadController(QObject):
         self.db_manager = db_manager
         self.model_manager = ModelManager()
         self._running = True
-        
+
         # Таймер для периодического вызова connect_and_push
         self.push_timer = QTimer()
         self.push_timer.timeout.connect(self.push_to_db)
@@ -38,7 +39,7 @@ class ModelThreadController(QObject):
         target_fps = 5
         if (st and st["fps"]):
             target_fps = st["fps"]
-            
+
         last_settings_check = time()
         settings_check_interval = 1.0
 
@@ -50,8 +51,8 @@ class ModelThreadController(QObject):
                 current_time = time()
                 if current_time - last_settings_check >= settings_check_interval:
                     current_settings_hash = self.model_manager.check_settings_hash()
-                    if (current_settings_hash != self.model_manager._current_settings_hash or 
-                        self.model_manager.reconnect):
+                    if (current_settings_hash != self.model_manager._current_settings_hash or
+                            self.model_manager.reconnect):
                         self.model_manager.update_settings()
                         if self.model_manager._current_runner:
                             target_fps = self.model_manager._current_runner.settings["fps"]
@@ -61,7 +62,7 @@ class ModelThreadController(QObject):
                 self.model_manager.write_to_db(self.db_manager)
                 frame, boxes = self.model_manager.get_images()
                 error_message = self.model_manager.get_error()
-                
+
                 # Отправка сигнала в главный поток
                 self.update_signal.emit(frame, boxes, error_message)
 
@@ -89,14 +90,19 @@ if __name__ == '__main__':
     controller = ModelThreadController(app, window, db_manager)
     controller.update_signal.connect(window.update_frame)
     window.show()
-    
+
     model_thread = Thread(target=controller.run)
     model_thread.daemon = True
     model_thread.start()
 
+    server_thread = Thread(target=run_server, args="data_db/database.db")
+    server_thread.daemon = True
+    server_thread.start()
+
     ret = app.exec()
-    
+
     controller.stop()
     model_thread.join(1.0)
-    
+    server_thread.join(1.0)
+
     sys.exit(ret)

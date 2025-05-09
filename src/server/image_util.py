@@ -4,7 +4,7 @@ import cv2
 
 from torchvision.utils import draw_bounding_boxes
 from torchvision.transforms.functional import to_pil_image
-from src.server.models import ObjectPhoto
+from .models import ObjectPhoto
 
 
 def show_boxes(names: list[str],
