@@ -51,7 +51,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="homePage">
        <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -82,7 +82,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Настройка камеры и файловой системы</string>
+           <string>Настройка камеры</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
