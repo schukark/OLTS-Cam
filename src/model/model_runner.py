@@ -7,14 +7,15 @@ from PySide6.QtGui import QImage
 from time import sleep
 
 from torchvision.models.detection import \
-    SSDLite320_MobileNet_V3_Large_Weights as SSDWeights
-from torchvision.models.detection import ssdlite320_mobilenet_v3_large
+    SSDLite320_MobileNet_V3_Large_Weights as ModelWeights
+from torchvision.models.detection import \
+    ssdlite320_mobilenet_v3_large as model_create
 from torchvision.utils import draw_bounding_boxes
 
 
 class ModelRunner:
     def __init__(self, settings):
-        self.weights = SSDWeights.COCO_V1
+        self.weights = ModelWeights.COCO_V1
         self.settings = settings
         self.capture = None
         self.model = None
@@ -34,7 +35,7 @@ class ModelRunner:
 
     def _init_model(self):
         try:
-            self.model = ssdlite320_mobilenet_v3_large(
+            self.model = model_create(
                 weights=self.weights,
                 detections_per_img=self.settings["detections_per_image"],
                 nms_thresh=self.settings["nms_thresh"],
@@ -138,8 +139,9 @@ class ModelRunner:
             box_img = box_img.permute(1, 2, 0).numpy()
 
             h, w, ch = img_np.shape
-            img_qimage = QImage(img_np.data, w, h, 3 * w, QImage.Format_RGB888)
-            box_qimage = QImage(box_img.data, w, h, 3 *
+            img_qimage = QImage(img_np.data, w, h, ch *
+                                w, QImage.Format_RGB888)
+            box_qimage = QImage(box_img.data, w, h, ch *
                                 w, QImage.Format_RGB888)
 
             return img_qimage, box_qimage
