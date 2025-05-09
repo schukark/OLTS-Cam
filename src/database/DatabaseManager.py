@@ -89,6 +89,48 @@ class DatabaseManager:
             if conn:
                 conn.close()
 
+    def get_all_objects(self) -> Optional[List[Dict[str, Any]]]:
+        try:
+            # Подключаемся к базе данных Objects
+            conn = sqlite3.connect(f"{self.db_path}/database.db")
+            cursor = conn.cursor()
+
+            # Находим последние записи по времени (в пределах 1ой секунды)
+            query = """
+                SELECT * FROM Objects
+                WHERE Time >= datetime('now', '-1 seconds')
+            """
+            cursor.execute(query)
+            object_row = cursor.fetchall()
+
+            if not object_row or object_row == []:
+                return None
+
+            # Создаем объект ObjectItem из строки
+            object_items = [ObjectItem(*object_item)
+                            for object_item in object_row]
+
+            # Формируем результат в виде списка словарей
+            result = [{
+                "Object": {
+                    "ObjrecID": object_item.ObjrecID,
+                    "Name": object_item.Name,
+                    "Time": object_item.Time,
+                    "PositionCoord": object_item.PositionCoord,
+                    "ContID": object_item.ContID,
+                    "PhotoPath": object_item.PhotoPath,
+                },
+            } for object_item in object_items]
+
+            return result
+
+        except sqlite3.Error as e:
+            print(f"Database error: {e}")
+            return None
+        finally:
+            if conn:
+                conn.close()
+
     def push_objects(self, item: ObjectItem):
         try:
             self.lock.acquire()

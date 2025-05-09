@@ -7,7 +7,11 @@ from fastapi import FastAPI, Response
 from models import ObjectPhoto, Receiver, Settings
 from pydantic_core import from_json
 
+from src.database.DatabaseManager import DatabaseManager
+from src.server.image_util import show_boxes
+
 app = FastAPI()
+db_conn = None
 
 
 @app.get("/settings/{rcv}")
@@ -29,17 +33,33 @@ def check_rcv_type(x: Dict[str, Any], rcv: Receiver) -> bool:
 
 
 @app.get("/object/{name}")
-async def get_object(name: str):
-    with open("test_image.txt", "r") as file_contents:
-        test_image = file_contents.readline()
-    return ObjectPhoto(height=224, width=224, image=test_image)
+async def get_object(name: str) -> Optional[ObjectPhoto]:
+    result = db_conn.get_latest_object_by_name(name)
+
+    if result is None:
+        return None
+
+    result = result["Object"]
+
+    return show_boxes([result["Name"]],
+                      [result["PhotoPath"]],
+                      [result["PositionCoords"]])
 
 
 @app.get("/objects/")
-async def get_objects():
-    with open("test_image2.txt", "r") as file_contents:
-        test_image = file_contents.readline()
-    return ObjectPhoto(height=224, width=224, image=test_image)
+async def get_objects() -> Optional[ObjectPhoto]:
+    result = db_conn.get_all_objects()
+
+    if result is None or result == []:
+        return None
+
+    names = [r["Object"]["Name"] for r in result]
+    paths = [r["Object"]["PhotoPath"] for r in result]
+    coords = [r["Object"]["PositionCoords"] for r in result]
+
+    return show_boxes(names,
+                      paths,
+                      coords)
 
 
 @app.post("/settings/")
@@ -71,7 +91,11 @@ async def change_settings(new_settings: Settings, response: Response):
         settings_file.write(json.dumps(cur_settings))
 
 
-def run_server():
+def run_server(db_path: str = ""):
+    global db_conn
+
+    db_conn = DatabaseManager(db_path)
+
     uvicorn.run(app, host="127.0.0.1", port=19841)
 
 

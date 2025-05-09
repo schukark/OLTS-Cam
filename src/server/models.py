@@ -11,8 +11,7 @@ class SettingsInner(BaseModel):
 
 class Receiver(str, Enum):
     Camera = "camera"
-    Db = "db"
-    Fs = "fs"
+    Model = "model"
 
 
 class Settings(BaseModel):
