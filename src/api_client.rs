@@ -151,7 +151,7 @@ mod tests {
             let api_client = ApiClient::new(host_with_port);
 
             let settings = serde_json::from_str(
-                "{\"receiver\":\"db\",\"settings\":[{\"key\":\"dummy_key\",\"value\":\"dummy_value\"}]}",
+                "{\"receiver\":\"model\",\"settings\":[{\"key\":\"dummy_key\",\"value\":\"dummy_value\"}]}",
             )?;
 
             let result = api_client.change_settings(settings).await;
@@ -258,11 +258,11 @@ mod tests {
             let server = MockServer::start_async().await;
 
             let mock = server.mock(|when, then| {
-                when.method(GET).path("/settings/fs");
+                when.method(GET).path("/settings/model");
                 then.status(200)
                     .header("content-type", "application/json")
                     .body(
-                    "{\"receiver\":\"fs\",\"settings\":[{\"key\":\"limit\",\"value\":\"30G\"}]}",
+                    "{\"receiver\":\"model\",\"settings\":[{\"key\":\"limit\",\"value\":\"30G\"}]}",
                 );
             });
 
@@ -271,10 +271,10 @@ mod tests {
             let api_client = ApiClient::new(host_with_port);
 
             let settings = serde_json::from_str(
-                "{\"receiver\":\"fs\",\"settings\":[{\"key\":\"limit\",\"value\":\"30G\"}]}",
+                "{\"receiver\":\"model\",\"settings\":[{\"key\":\"limit\",\"value\":\"30G\"}]}",
             )?;
 
-            let result = api_client.get_settings(Receiver::Fs).await;
+            let result = api_client.get_settings(Receiver::Model).await;
             assert!(result.is_ok());
             assert_eq!(result.unwrap(), settings);
             mock.assert_async().await;

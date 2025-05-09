@@ -116,7 +116,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
                 log::debug!("No such receiver");
                 bot.send_message(
                     msg.chat.id,
-                    "Incorrect receiver specified, should be one of 'camera', 'db' or 'fs'",
+                    "Incorrect receiver specified, should be one of 'camera' or 'model'",
                 )
                 .await?;
 
@@ -164,7 +164,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command, api: ApiClient) -> Handler
                 log::debug!("Receiver formatted incorrectly");
                 bot.send_message(
                     msg.chat.id,
-                    "Receiver formatted incorrectly, should be one of: camera, db, fs",
+                    "Receiver formatted incorrectly, should be one of: camera or model",
                 )
                 .await?;
 
@@ -444,7 +444,7 @@ mod tests {
             timeout(
                 Duration::from_secs(1),
                 bot.dispatch_and_check_last_text(
-                    "Incorrect receiver specified, should be one of 'camera', 'db' or 'fs'",
+                    "Incorrect receiver specified, should be one of 'camera' or 'model'",
                 ),
             )
             .await?;
@@ -458,14 +458,14 @@ mod tests {
             let server = MockServer::start_async().await;
 
             let mock = server.mock(|when, then| {
-                when.method(GET).path("/settings/db");
+                when.method(GET).path("/settings/camera");
                 then.status(421).header("content-type", "application/json");
             });
 
             let api = ApiClient::new(server.address().to_string());
 
             let bot = MockBot::new(
-                MockMessageText::new().text("/getsettings db"),
+                MockMessageText::new().text("/getsettings camera"),
                 handler_tree(),
             );
             bot.dependencies(dptree::deps![api]);
@@ -588,7 +588,7 @@ mod tests {
             timeout(
                 Duration::from_secs(1),
                 bot.dispatch_and_check_last_text(
-                    "Receiver formatted incorrectly, should be one of: camera, db, fs",
+                    "Receiver formatted incorrectly, should be one of: camera or model",
                 ),
             )
             .await?;
@@ -601,7 +601,7 @@ mod tests {
         async fn test_fail() -> Result<()> {
             let server = MockServer::start_async().await;
 
-            let body = "fs limit 30G";
+            let body = "model limit 30G";
             let mock = server.mock(|when, then| {
                 when.method(POST).path("/settings");
                 then.status(421)

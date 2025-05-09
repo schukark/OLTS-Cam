@@ -19,18 +19,15 @@ struct SettingsInner {
 pub enum Receiver {
     /// Camera variant
     Camera,
-    /// Database variant
-    Db,
-    /// Filesystem variant
-    Fs,
+    /// Model variant
+    Model,
 }
 
 impl Display for Receiver {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let name = match self {
             Receiver::Camera => "camera",
-            Receiver::Db => "db",
-            Receiver::Fs => "fs",
+            Receiver::Model => "model",
         };
 
         write!(f, "{name}")
@@ -42,9 +39,8 @@ impl TryFrom<String> for Receiver {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.as_str() {
-            "db" => Ok(Receiver::Db),
             "camera" => Ok(Receiver::Camera),
-            "fs" => Ok(Receiver::Fs),
+            "model" => Ok(Receiver::Model),
             x => Err(ModelError::InvalidReceiver(format!(
                 "{x} is not a valid receiver"
             ))),
@@ -65,8 +61,7 @@ impl Display for Settings {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let rcv_emoji = match &self.receiver {
             Receiver::Camera => "📷",
-            Receiver::Db => "⛁",
-            Receiver::Fs => "📁",
+            Receiver::Model => "🧠",
         };
 
         let mut settings_str = String::from("");
