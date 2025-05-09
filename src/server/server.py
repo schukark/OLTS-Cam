@@ -7,8 +7,8 @@ from fastapi import FastAPI, Response
 from models import ObjectPhoto, Receiver, Settings
 from pydantic_core import from_json
 
-from src.database.DatabaseManager import DatabaseManager
-from src.server.image_util import show_boxes
+from database.DatabaseManager import DatabaseManager
+from server.image_util import show_boxes
 
 app = FastAPI()
 db_conn = None
