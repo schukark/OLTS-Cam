@@ -158,7 +158,7 @@ class ModelManager:
 
             try:
                 settings["fps"] = int(settings.get("fps"))
-                settings["nms_thresh"] = float(settings.get("threshold"))
+                settings["nms_thresh"] = "0.3"
                 settings["score_thresh"] = float(settings.get("threshold"))
 
                 # Гарантируем UTF-8 для save_folder
@@ -238,11 +238,12 @@ class ModelManager:
                     photo_path = label_folder / "latest.jpg"
 
                     # Сохраняем изображение
-                    if self.image2:
-                        self.image2.save(str(photo_path))
+                    if self.image1:
+                        self.image1.save(str(photo_path))
 
                     # Создаем объект для базы данных
                     object_item = ObjectItem(
+                        ObjrecID=0,
                         Name=label,
                         Time=str(datetime.now()),
                         PositionCoord=f"{box[0]},{box[1]},{box[2]},{box[3]}",

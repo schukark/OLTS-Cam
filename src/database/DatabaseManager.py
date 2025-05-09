@@ -1,11 +1,22 @@
+import logging
+import os
+import sqlite3
 from threading import Lock
 from time import sleep
+from typing import Any, Dict, List, Optional
+
 from .Container import Container
 from .Objects import Objects
 from .tables.ObjectItem import ObjectItem
-import os
-import sqlite3
-from typing import List, Optional, Dict, Any
+
+logging.getLogger(__name__)
+logging.basicConfig(
+    filename="db_manager_logs.txt",
+    filemode='a',
+    format='%(asctime)s,%(msecs)03d %(name)s %(levelname)s %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    level=logging.DEBUG
+)
 
 
 class DatabaseManager:
@@ -38,10 +49,13 @@ class DatabaseManager:
         Returns:
             Словарь с данными в формате JSON или None, если запись не найдена.
         """
+        logging.info(f"Called get object latest {name}")
+        conn = None
         try:
             # Подключаемся к базе данных Objects
-            conn = sqlite3.connect(f"{self.db_path}/database.db")
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
+            logging.debug("Connected to db")
 
             # Находим последнюю запись по имени (с максимальным Time)
             query = """
@@ -51,13 +65,17 @@ class DatabaseManager:
                 LIMIT 1
             """
             cursor.execute(query, (name,))
+            logging.debug(f"Executed query {query}")
+
             object_row = cursor.fetchone()
 
             if not object_row:
+                logging.debug("Row was None")
                 return None
-
             # Создаем объект ObjectItem из строки
             object_item = ObjectItem(*object_row)
+
+            logging.debug(f"Created object item: {object_item}")
 
             # Получаем связанные данные из таблицы Containers
             container_item = self.db["Container"].read(object_item.ContID)
@@ -90,20 +108,28 @@ class DatabaseManager:
                 conn.close()
 
     def get_all_objects(self) -> Optional[List[Dict[str, Any]]]:
+        conn = None
         try:
             # Подключаемся к базе данных Objects
-            conn = sqlite3.connect(f"{self.db_path}/database.db")
+            conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-
             # Находим последние записи по времени (в пределах 1ой секунды)
             query = """
-                SELECT * FROM Objects
-                WHERE Time >= datetime('now', '-1 seconds')
+                WITH lt AS (
+                    SELECT Time
+                    FROM Objects
+                    ORDER BY Time DESC
+                    LIMIT 1
+                )
+                SELECT *
+                FROM Objects
+                WHERE Time = (SELECT Time FROM lt);
+
             """
             cursor.execute(query)
             object_row = cursor.fetchall()
 
-            if not object_row or object_row == []:
+            if not object_row:
                 return None
 
             # Создаем объект ObjectItem из строки

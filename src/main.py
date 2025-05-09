@@ -36,7 +36,7 @@ class ModelThreadController(QObject):
 
     def run(self):
         st = self.model_manager._get_settings()
-        target_fps = 5
+        target_fps = 20
         if (st and st["fps"]):
             target_fps = st["fps"]
 
@@ -69,7 +69,7 @@ class ModelThreadController(QObject):
                 # Контроль FPS
                 processing_time = time() - start_time
                 remaining_time = (1.0 / target_fps) - processing_time
-                print(remaining_time)
+                # print(remaining_time)
                 if remaining_time > 0:
                     sleep(remaining_time)
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     model_thread.daemon = True
     model_thread.start()
 
-    server_thread = Thread(target=run_server, args="data_db/database.db")
+    server_thread = Thread(target=run_server, args=["data_db/database.db"])
     server_thread.daemon = True
     server_thread.start()
 

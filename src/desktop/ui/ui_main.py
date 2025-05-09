@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'ui_main.ui'
+# Form generated from reading UI file 'ui_main.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.1
+# Created by: Qt User Interface Compiler version 6.8.1
 ##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
+# WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
+                            QMetaObject, QObject, QPoint, QRect,
+                            QSize, QTime, QUrl, Qt)
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
+                           QFont, QFontDatabase, QGradient, QIcon,
+                           QImage, QKeySequence, QLinearGradient, QPainter,
+                           QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLabel,
-    QLineEdit, QMainWindow, QPushButton, QSizePolicy,
-    QSlider, QStackedWidget, QVBoxLayout, QWidget)
+                               QLineEdit, QMainWindow, QPushButton, QSizePolicy,
+                               QSlider, QStackedWidget, QVBoxLayout, QWidget)
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -34,10 +35,12 @@ class Ui_MainWindow(object):
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.stackedWidget = QStackedWidget(self.centralwidget)
         self.stackedWidget.setObjectName(u"stackedWidget")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy = QSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.stackedWidget.sizePolicy().hasHeightForWidth())
         self.stackedWidget.setSizePolicy(sizePolicy)
         self.homePage = QWidget()
         self.homePage.setObjectName(u"homePage")
@@ -81,7 +84,8 @@ class Ui_MainWindow(object):
         self.cameraPasswordInput = QLineEdit(self.cameraSettingsPage)
         self.cameraPasswordInput.setObjectName(u"cameraPasswordInput")
         self.cameraPasswordInput.setMinimumSize(QSize(0, 40))
-        self.cameraPasswordInput.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
+        self.cameraPasswordInput.setEchoMode(
+            QLineEdit.EchoMode.PasswordEchoOnEdit)
 
         self.verticalLayout_3.addWidget(self.cameraPasswordInput)
 
@@ -92,7 +96,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addWidget(self.rtspUrlInput)
 
         self.saveCameraSettingsButton = QPushButton(self.cameraSettingsPage)
-        self.saveCameraSettingsButton.setObjectName(u"saveCameraSettingsButton")
+        self.saveCameraSettingsButton.setObjectName(
+            u"saveCameraSettingsButton")
         self.saveCameraSettingsButton.setMinimumSize(QSize(0, 50))
         font1 = QFont()
         font1.setPointSize(12)
@@ -117,7 +122,8 @@ class Ui_MainWindow(object):
         self.token = QLineEdit(self.modelSettingsPage)
         self.token.setObjectName(u"token")
         self.token.setMinimumSize(QSize(0, 40))
-        self.token.setInputMethodHints(Qt.InputMethodHint.ImhNoAutoUppercase|Qt.InputMethodHint.ImhNoPredictiveText|Qt.InputMethodHint.ImhSensitiveData)
+        self.token.setInputMethodHints(Qt.InputMethodHint.ImhNoAutoUppercase |
+                                       Qt.InputMethodHint.ImhNoPredictiveText | Qt.InputMethodHint.ImhSensitiveData)
         self.token.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
 
         self.verticalLayout_4.addWidget(self.token)
@@ -156,7 +162,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_2.addWidget(self.horizontalSlider)
 
-
         self.verticalLayout_4.addWidget(self.tresholdwidget)
 
         self.label = QLabel(self.modelSettingsPage)
@@ -175,10 +180,12 @@ class Ui_MainWindow(object):
         self.saveFolderInput = QLineEdit(self.widget)
         self.saveFolderInput.setObjectName(u"saveFolderInput")
         self.saveFolderInput.setEnabled(False)
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        sizePolicy1 = QSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         sizePolicy1.setHorizontalStretch(1)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.saveFolderInput.sizePolicy().hasHeightForWidth())
+        sizePolicy1.setHeightForWidth(
+            self.saveFolderInput.sizePolicy().hasHeightForWidth())
         self.saveFolderInput.setSizePolicy(sizePolicy1)
         self.saveFolderInput.setMinimumSize(QSize(0, 40))
 
@@ -190,7 +197,6 @@ class Ui_MainWindow(object):
         self.browseFolderButton.setMaximumSize(QSize(100, 40))
 
         self.horizontalLayout_4.addWidget(self.browseFolderButton)
-
 
         self.verticalLayout_4.addWidget(self.widget)
 
@@ -226,10 +232,12 @@ class Ui_MainWindow(object):
 
         self.CheckBoxModel = QCheckBox(self.videoPlaybackPage)
         self.CheckBoxModel.setObjectName(u"CheckBoxModel")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy2 = QSizePolicy(
+            QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.CheckBoxModel.sizePolicy().hasHeightForWidth())
+        sizePolicy2.setHeightForWidth(
+            self.CheckBoxModel.sizePolicy().hasHeightForWidth())
         self.CheckBoxModel.setSizePolicy(sizePolicy2)
         font3 = QFont()
         font3.setPointSize(12)
@@ -245,10 +253,12 @@ class Ui_MainWindow(object):
 
         self.horizontalWidget = QWidget(self.centralwidget)
         self.horizontalWidget.setObjectName(u"horizontalWidget")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        sizePolicy3 = QSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         sizePolicy3.setHorizontalStretch(0)
         sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.horizontalWidget.sizePolicy().hasHeightForWidth())
+        sizePolicy3.setHeightForWidth(
+            self.horizontalWidget.sizePolicy().hasHeightForWidth())
         self.horizontalWidget.setSizePolicy(sizePolicy3)
         self.horizontalLayout = QHBoxLayout(self.horizontalWidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -282,7 +292,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.videoPlaybackButton_2)
 
-
         self.verticalLayout.addWidget(self.horizontalWidget)
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -291,35 +300,57 @@ class Ui_MainWindow(object):
 
         self.stackedWidget.setCurrentIndex(2)
 
-
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043a\u0430\u043c\u0435\u0440\u044b", None))
-        self.cameraIPInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 IP \u043a\u0430\u043c\u0435\u0440\u044b", None))
-        self.cameraPortInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u043e\u0440\u0442 \u043a\u0430\u043c\u0435\u0440\u044b", None))
-        self.cameraLoginInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043b\u043e\u0433\u0438\u043d \u043a\u0430\u043c\u0435\u0440\u044b", None))
-        self.cameraPasswordInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c \u043a\u0430\u043c\u0435\u0440\u044b", None))
-        self.rtspUrlInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 RTSP URL", None))
-        self.saveCameraSettingsButton.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043a\u0430\u043c\u0435\u0440\u044b", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043c\u043e\u0434\u0435\u043b\u0438, \u0431\u0430\u0437\u044b \u0434\u0430\u043d\u043d\u044b\u0445 \u0438 \u0444\u0430\u0439\u043b\u043e\u0432\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c\u044b", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate(
+            "MainWindow", u"MainWindow", None))
+        self.label_2.setText(QCoreApplication.translate(
+            "MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043a\u0430\u043c\u0435\u0440\u044b", None))
+        self.cameraIPInput.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 IP \u043a\u0430\u043c\u0435\u0440\u044b", None))
+        self.cameraPortInput.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u043e\u0440\u0442 \u043a\u0430\u043c\u0435\u0440\u044b", None))
+        self.cameraLoginInput.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043b\u043e\u0433\u0438\u043d \u043a\u0430\u043c\u0435\u0440\u044b", None))
+        self.cameraPasswordInput.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c \u043a\u0430\u043c\u0435\u0440\u044b", None))
+        self.rtspUrlInput.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 RTSP URL", None))
+        self.saveCameraSettingsButton.setText(QCoreApplication.translate(
+            "MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043a\u0430\u043c\u0435\u0440\u044b", None))
+        self.label_3.setText(QCoreApplication.translate(
+            "MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043c\u043e\u0434\u0435\u043b\u0438, \u0431\u0430\u0437\u044b \u0434\u0430\u043d\u043d\u044b\u0445 \u0438 \u0444\u0430\u0439\u043b\u043e\u0432\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c\u044b", None))
         self.token.setText("")
-        self.token.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0442\u043e\u043a\u0435\u0442 \u043a Telegram-\u0431\u043e\u0442\u0443", None))
-        self.videoObjectCount.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0440\u0430\u0441\u043f\u043e\u0437\u043d\u0430\u0432\u0430\u0435\u043c\u044b\u0445 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432 \u0437\u0430 \u043a\u0430\u0434\u0440 (\u043e\u0442 3 \u0434\u043e 15)", None))
-        self.fpsInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u043a\u0430\u0434\u0440\u043e\u0432 \u0432 \u0441\u0435\u043a\u0443\u043d\u0434\u0443", None))
-        self.objectThresholdInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u043e\u0440\u043e\u0433 \u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0446\u0438\u0438 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0430\u043f\u043a\u0430 \u0434\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f:", None))
-        self.saveFolderInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0430\u043f\u043a\u0443 \u0434\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f", None))
-        self.browseFolderButton.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u0437\u043e\u0440...", None))
-        self.saveModelSettingsButton.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043c\u043e\u0434\u0435\u043b\u0438", None))
-        self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043e\u0441\u043f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u0435 \u0432\u0438\u0434\u0435\u043e", None))
-        self.video_label.setText(QCoreApplication.translate("MainWindow", u"\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0432\u0438\u0434\u0435\u043e", None))
-        self.CheckBoxModel.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0431\u043e\u043a\u0441\u044b \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
-        self.homeButton.setText(QCoreApplication.translate("MainWindow", u"\u0413\u043b\u0430\u0432\u043d\u0430\u044f", None))
-        self.cameraSettingsButton_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043a\u0430\u043c\u0435\u0440\u044b", None))
-        self.modelSettingsButton_2.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043c\u043e\u0434\u0435\u043b\u0438", None))
-        self.videoPlaybackButton_2.setText(QCoreApplication.translate("MainWindow", u"\u0412\u043e\u0441\u043f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u0435", None))
+        self.token.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0442\u043e\u043a\u0435\u0442 \u043a Telegram-\u0431\u043e\u0442\u0443", None))
+        self.videoObjectCount.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u0440\u0430\u0441\u043f\u043e\u0437\u043d\u0430\u0432\u0430\u0435\u043c\u044b\u0445 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432 \u0437\u0430 \u043a\u0430\u0434\u0440 (\u043e\u0442 3 \u0434\u043e 15)", None))
+        self.fpsInput.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u043a\u0430\u0434\u0440\u043e\u0432 \u0432 \u0441\u0435\u043a\u0443\u043d\u0434\u0443", None))
+        self.objectThresholdInput.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u043e\u0440\u043e\u0433 \u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0446\u0438\u0438 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
+        self.label.setText(QCoreApplication.translate(
+            "MainWindow", u"\u041f\u0430\u043f\u043a\u0430 \u0434\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f:", None))
+        self.saveFolderInput.setPlaceholderText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0430\u043f\u043a\u0443 \u0434\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f", None))
+        self.browseFolderButton.setText(QCoreApplication.translate(
+            "MainWindow", u"\u041e\u0431\u0437\u043e\u0440...", None))
+        self.saveModelSettingsButton.setText(QCoreApplication.translate(
+            "MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043c\u043e\u0434\u0435\u043b\u0438", None))
+        self.label_4.setText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u043e\u0441\u043f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u0435 \u0432\u0438\u0434\u0435\u043e", None))
+        self.video_label.setText(QCoreApplication.translate(
+            "MainWindow", u"\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0432\u0438\u0434\u0435\u043e", None))
+        self.CheckBoxModel.setText(QCoreApplication.translate(
+            "MainWindow", u"\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0431\u043e\u043a\u0441\u044b \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432", None))
+        self.homeButton.setText(QCoreApplication.translate(
+            "MainWindow", u"\u0413\u043b\u0430\u0432\u043d\u0430\u044f", None))
+        self.cameraSettingsButton_2.setText(QCoreApplication.translate(
+            "MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043a\u0430\u043c\u0435\u0440\u044b", None))
+        self.modelSettingsButton_2.setText(QCoreApplication.translate(
+            "MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043c\u043e\u0434\u0435\u043b\u0438", None))
+        self.videoPlaybackButton_2.setText(QCoreApplication.translate(
+            "MainWindow", u"\u0412\u043e\u0441\u043f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u0435", None))
     # retranslateUi
-

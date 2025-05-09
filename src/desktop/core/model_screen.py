@@ -94,7 +94,7 @@ class ModelScreen:
         """Сохраняет токен в .env файл"""
         env_lines = []
         token_found = False
-        
+
         # Читаем существующий файл, если он есть
         if self.ENV_PATH.exists():
             with open(self.ENV_PATH, 'r', encoding='utf-8') as f:
@@ -104,15 +104,15 @@ class ModelScreen:
                         token_found = True
                     else:
                         env_lines.append(line)
-        
+
         # Если токен не найден, добавляем новую строку
         if not token_found:
             env_lines.append(f'TELOXIDE_TOKEN={token}\n')
-        
+
         # Записываем обратно в файл
         with open(self.ENV_PATH, 'w', encoding='utf-8') as f:
             f.writelines(env_lines)
-        
+
         # Обновляем текущий токен
         self.current_token = token
 
@@ -227,7 +227,7 @@ class ModelScreen:
             new_token = settings['telegram_token']
             if new_token and new_token != self.current_token:
                 self.save_token_to_env(new_token)
-            
+
             self.save_settings(settings)
             QMessageBox.information(
                 None, "Успех", "Настройки модели успешно сохранены!")

@@ -2,6 +2,7 @@ import base64
 from io import BytesIO
 import cv2
 
+import torch
 from torchvision.utils import draw_bounding_boxes
 from torchvision.transforms.functional import to_pil_image
 from .models import ObjectPhoto
@@ -30,14 +31,17 @@ def show_boxes(names: list[str],
         coord_list.append(coords_num)
 
     image = cv2.imread(photo_paths[0])
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     h, w, _ = image.shape
 
-    boxed_img = draw_bounding_boxes(image, boxes=coord_list,
+    print(torch.tensor(coord_list).shape)
+    boxed_img = draw_bounding_boxes(torch.from_numpy(image).permute(2, 0, 1),
+                                    boxes=torch.tensor(coord_list),
                                     labels=names,
                                     colors="red",
                                     width=4, font_size=30)
 
-    image = to_pil_image(boxed_img)
+    image = to_pil_image(boxed_img, mode="RGB")
 
     buffered = BytesIO()
 

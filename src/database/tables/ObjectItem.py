@@ -3,8 +3,9 @@ from dataclasses import dataclass
 
 @dataclass
 class ObjectItem:
+    ObjrecID: int
     Name: str
     Time: str
     PositionCoord: str
-    PhotoPath: str
     ContID: int
+    PhotoPath: str

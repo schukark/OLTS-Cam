@@ -95,24 +95,27 @@ class CameraScreen:
     def setup_connections(self):
         """Подключение сигналов"""
         self.ui.saveCameraSettingsButton.clicked.connect(self.on_save_clicked)
-        
+
         # Подключаем обработчики изменений полей
         self.ui.cameraIPInput.textChanged.connect(self.update_rtsp_from_fields)
-        self.ui.cameraPortInput.textChanged.connect(self.update_rtsp_from_fields)
-        self.ui.cameraLoginInput.textChanged.connect(self.update_rtsp_from_fields)
-        self.ui.cameraPasswordInput.textChanged.connect(self.update_rtsp_from_fields)
+        self.ui.cameraPortInput.textChanged.connect(
+            self.update_rtsp_from_fields)
+        self.ui.cameraLoginInput.textChanged.connect(
+            self.update_rtsp_from_fields)
+        self.ui.cameraPasswordInput.textChanged.connect(
+            self.update_rtsp_from_fields)
         self.ui.rtspUrlInput.textChanged.connect(self.update_fields_from_rtsp)
 
     def update_rtsp_from_fields(self):
         """Обновляет RTSP URL на основе отдельных полей"""
         # Временно отключаем обработчик, чтобы избежать рекурсии
         self.ui.rtspUrlInput.blockSignals(True)
-        
+
         ip = self.ui.cameraIPInput.text().strip()
         port = self.ui.cameraPortInput.text().strip()
         login = self.ui.cameraLoginInput.text().strip()
         password = self.ui.cameraPasswordInput.text().strip()
-        
+
         if ip:
             # Формируем базовую часть URL
             if login and (not password or password == ""):
@@ -121,17 +124,17 @@ class CameraScreen:
                 rtsp_url = f"rtsp://{login}:{password}@{ip}"
             else:
                 rtsp_url = f"rtsp://{ip}"
-            
+
             # Добавляем порт, если он указан
             if port:
                 rtsp_url += f":{port}"
-            
+
             # Добавляем путь к потоку
             rtsp_url += "/stream"
             self.ui.rtspUrlInput.setText(rtsp_url)
         else:
             self.ui.rtspUrlInput.setText("")
-        
+
         # Включаем обработчик обратно
         self.ui.rtspUrlInput.blockSignals(False)
 
@@ -142,22 +145,22 @@ class CameraScreen:
         self.ui.cameraPortInput.blockSignals(True)
         self.ui.cameraLoginInput.blockSignals(True)
         self.ui.cameraPasswordInput.blockSignals(True)
-        
+
         rtsp_url = self.ui.rtspUrlInput.text().strip()
-        
+
         # Очищаем поля перед заполнением
         self.ui.cameraLoginInput.setText("")
         self.ui.cameraPasswordInput.setText("")
         self.ui.cameraPortInput.setText("")
         self.ui.cameraIPInput.setText("")
-        
+
         # Улучшенный парсинг RTSP URL
         pattern = r'^rtsp://(?:([^:]+)(?::([^@]+))?@)?([^:/]+)(?::(\d+))?(?:/(.*))?$'
         match = re.match(pattern, rtsp_url)
-        
+
         if match:
             login, password, ip, port, path = match.groups()
-            
+
             if ip:
                 self.ui.cameraIPInput.setText(ip)
             if port:
@@ -166,7 +169,7 @@ class CameraScreen:
                 self.ui.cameraLoginInput.setText(login)
             if password:
                 self.ui.cameraPasswordInput.setText(password)
-        
+
         # Включаем обработчики обратно
         self.ui.cameraIPInput.blockSignals(False)
         self.ui.cameraPortInput.blockSignals(False)
