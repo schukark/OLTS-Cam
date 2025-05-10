@@ -45,7 +45,6 @@ class ModelThreadController(QObject):
         
     def update_settings(self):
         """Push settings to screen."""
-        print(self.window.screens["model"].is_focus())
         self.window.screens["camera"].load_settings()
         self.window.screens["model"].load_settings()
 
