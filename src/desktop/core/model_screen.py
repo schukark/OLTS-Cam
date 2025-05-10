@@ -4,79 +4,7 @@ from pathlib import Path
 from typing import Dict, Tuple
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
-
-class ModelSettingsValidator:
-    """
-    A validator class for model settings fields.
-    
-    Provides validation methods for object count, FPS, and threshold values.
-    """
-
-    def validate_object_count(self, count: str) -> Tuple[bool, str]:
-        """
-        Validates the object count.
-
-        Args:
-            count (str): The number of objects as a string.
-
-        Returns:
-            Tuple[bool, str]: A tuple where the first element is True if valid,
-                              False otherwise, and the second element is the error message.
-        """
-        if not count:
-            return False, "The number of objects cannot be empty."
-
-        try:
-            count_num = int(count)
-            if not 3 <= count_num <= 15:
-                return False, "The number of objects must be between 3 and 15."
-            return True, ""
-        except ValueError:
-            return False, "The number of objects must be an integer."
-
-    def validate_fps(self, fps: str) -> Tuple[bool, str]:
-        """
-        Validates the FPS value.
-
-        Args:
-            fps (str): Frames per second as a string.
-
-        Returns:
-            Tuple[bool, str]: A tuple where the first element is True if valid,
-                              False otherwise, and the second element is the error message.
-        """
-        if not fps:
-            return False, "FPS cannot be empty."
-
-        try:
-            fps_num = float(fps)
-            if fps_num <= 0:
-                return False, "FPS must be a positive number."
-            return True, ""
-        except ValueError:
-            return False, "FPS must be a number."
-
-    def validate_threshold(self, threshold: str) -> Tuple[bool, str]:
-        """
-        Validates the object identification threshold.
-
-        Args:
-            threshold (str): Threshold value as a string.
-
-        Returns:
-            Tuple[bool, str]: A tuple where the first element is True if valid,
-                              False otherwise, and the second element is the error message.
-        """
-        if not threshold:
-            return False, "Threshold cannot be empty."
-
-        try:
-            threshold_num = float(threshold)
-            if not 0 <= threshold_num <= 1:
-                return False, "Threshold must be between 0 and 1."
-            return True, ""
-        except ValueError:
-            return False, "Threshold must be a number."
+from utils.model_settings_validator import ModelSettingsValidator
 
 
 class ModelScreen:
@@ -101,6 +29,7 @@ class ModelScreen:
         self.ui = ui
         self.window = window
         self.validator = ModelSettingsValidator()
+        self.folder_update = False
         self.setup_connections()
         self.current_token = self.load_current_token()  # Load the current token
 
@@ -196,6 +125,7 @@ class ModelScreen:
             QFileDialog.ShowDirsOnly
         )
         if folder:
+            self.folder_update = True
             self.ui.saveFolderInput.setText(folder)
 
     def get_all_settings(self) -> Dict:
@@ -213,6 +143,13 @@ class ModelScreen:
             'save_folder': self.ui.saveFolderInput.text().strip(),
         }
 
+    def is_focus(self):
+        """Check focus for input fields"""
+        return self.ui.videoObjectCount.hasFocus() or \
+            self.ui.fpsInput.hasFocus() or  \
+            self.ui.horizontalSlider.hasFocus() or  \
+            self.folder_update
+
     def set_all_settings(self, settings: Dict):
         """
         Populates the UI fields with settings.
@@ -221,18 +158,27 @@ class ModelScreen:
             settings (Dict): A dictionary of settings to apply.
         """
         self.ui.token.setText(settings.get('telegram_token', ''))
-        self.ui.videoObjectCount.setText(settings.get('object_count', ''))
-        self.ui.fpsInput.setText(settings.get('fps', ''))
-
-        threshold = settings.get('threshold', '0.5')
-        self.ui.objectThresholdInput.setText(threshold)
-        try:
-            slider_value = int(float(threshold) * 100)
-            self.ui.horizontalSlider.setValue(slider_value)
-        except ValueError:
-            self.ui.horizontalSlider.setValue(50)  # Default to 0.5
-
-        self.ui.saveFolderInput.setText(settings.get('save_folder', ''))
+        
+        if not self.is_focus():
+            try:
+                self.ui.videoObjectCount.blockSignals(True)
+                self.ui.fpsInput.blockSignals(True)
+                self.ui.horizontalSlider.blockSignals(True)
+                
+                self.ui.videoObjectCount.setText(settings.get('object_count', ''))
+                self.ui.fpsInput.setText(settings.get('fps', ''))
+                threshold = settings.get('threshold', '0.5')
+                self.ui.objectThresholdInput.setText(threshold)
+                try:
+                    slider_value = int(float(threshold) * 100)
+                    self.ui.horizontalSlider.setValue(slider_value)
+                except ValueError:
+                    self.ui.horizontalSlider.setValue(50)  # Default to 0.5
+                self.ui.saveFolderInput.setText(settings.get('save_folder', ''))
+            finally:
+                self.ui.videoObjectCount.blockSignals(False)
+                self.ui.fpsInput.blockSignals(False)
+                self.ui.horizontalSlider.blockSignals(False)
 
     def clear_highlight(self):
         """
@@ -295,6 +241,7 @@ class ModelScreen:
         """
         Handles the save button click, validates fields, and saves settings if valid.
         """
+        self.folder_update = False
         is_valid, settings = self.validate_all_fields()
 
         if not is_valid:

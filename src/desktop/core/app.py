@@ -62,6 +62,7 @@ class ApplicationWindow(QMainWindow):
             'video': self.ui.videoPlaybackPage
         }
 
+        self.screens["model"].folder_update = False
         if self.cur_screen == "camera":
             self.screens['camera'].load_settings()
             self.screens['camera'].clear_highlight()

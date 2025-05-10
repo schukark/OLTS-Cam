@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict, Tuple
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QObject, Signal, QEvent
+from utils.camera_settings_validator import CameraSettingsValidator
 
 """
 Camera Settings Module
@@ -16,108 +17,6 @@ Classes:
     CameraSettingsValidator - Validates camera connection parameters.
     CameraScreen - Manages the camera settings UI and operations.
 """
-
-
-class CameraSettingsValidator:
-    """
-    Validates camera connection parameters.
-
-    Methods:
-        - validate_ip: Checks the format of an IP address.
-        - validate_port: Checks the validity of a port number.
-        - validate_rtsp_url: Validates the RTSP URL format.
-        - validate_login: Validates login credentials (allows empty values).
-    """
-
-    def validate_ip(self, ip: str) -> Tuple[bool, str]:
-        """
-        Validates the format of an IP address.
-
-        Args:
-            ip: The IP address string to validate.
-
-        Returns:
-            Tuple[bool, str]: (is_valid, error_message)
-        """
-        if not ip or ip == "":
-            return False, "IP address cannot be empty."
-
-        ip = ip.strip()
-
-        if not re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
-            return False, "Invalid IP address format. Example: 192.168.1.1"
-
-        octets = ip.split('.')
-        if len(octets) != 4:
-            return False, "IP address must contain 4 octets."
-
-        for octet in octets:
-            if not octet.isdigit():
-                return False, "Each octet must be a number."
-
-            num = int(octet)
-            if not 0 <= num <= 255:
-                return False, "Each octet must be between 0 and 255."
-
-            if len(octet) > 1 and octet[0] == '0':
-                return False, "Octets must not have leading zeros."
-
-        return True, ""
-
-    def validate_port(self, port: str) -> Tuple[bool, str]:
-        """
-        Validates the port number (optional field).
-
-        Args:
-            port: The port number string to validate.
-
-        Returns:
-            Tuple[bool, str]: (is_valid, error_message)
-        """
-        if not port:
-            return True, ""
-
-        if not port.isdigit():
-            return False, "Port must be a number."
-
-        port_num = int(port)
-        if not 1 <= port_num <= 65535:
-            return False, "Port must be between 1 and 65535."
-
-        return True, ""
-
-    def validate_rtsp_url(self, url: str) -> Tuple[bool, str]:
-        """
-        Validates the RTSP URL format.
-
-        Args:
-            url: The RTSP URL string to validate.
-
-        Returns:
-            Tuple[bool, str]: (is_valid, error_message)
-        """
-        if not url:
-            return False, "RTSP URL cannot be empty."
-
-        rtsp_pattern = r'^rtsp://(?:[^:@/]+(?::[^@/]+)?@)?[^:/]+(?::\d+)?(?:/.*)?$'
-        if not re.match(rtsp_pattern, url, re.IGNORECASE):
-            return False, "Invalid RTSP URL format. Example: rtsp://admin:12345@8.8.8.8:554/stream"
-
-        return True, ""
-
-    def validate_login(self, login: str) -> Tuple[bool, str]:
-        """
-        Validates the login field (allows empty value).
-
-        Args:
-            login: The login string to validate.
-
-        Returns:
-            Tuple[bool, str]: (is_valid, error_message)
-        """
-        return True, ""
-
-
 class CameraScreen(QObject):
     """
     Manages camera settings UI and interactions, including saving/loading settings
@@ -158,7 +57,6 @@ class CameraScreen(QObject):
         self.ui.cameraPasswordInput.textChanged.connect(self.update_rtsp_from_fields)
         self.ui.rtspUrlInput.textChanged.connect(self.update_fields_from_rtsp)
 
-
     def is_focus(self):
         """Check focus for input fields"""
         return self.ui.cameraIPInput.hasFocus() or \
@@ -166,7 +64,7 @@ class CameraScreen(QObject):
             self.ui.cameraLoginInput.hasFocus() or  \
             self.ui.cameraPasswordInput.hasFocus() or \
             self.ui.rtspUrlInput.hasFocus() \
-        
+
     def load_settings(self):
         """Loads settings from JSON file if not editing"""
         if self.SETTINGS_PATH.exists():
@@ -178,62 +76,37 @@ class CameraScreen(QObject):
                 print(f"Error loading settings: {str(e)}")
 
     def update_rtsp_from_fields(self):
-        """Updates RTSP URL based on individual field values"""
+        """Updates RTSP URL based on individual field values using validator"""
         try:
             self.ui.rtspUrlInput.blockSignals(True)
-
-            ip = self.ui.cameraIPInput.text().strip()
-            port = self.ui.cameraPortInput.text().strip()
-            login = self.ui.cameraLoginInput.text().strip()
-            password = self.ui.cameraPasswordInput.text().strip()
-
-            if ip:
-                if login and (not password or password == ""):
-                    rtsp_url = f"rtsp://{login}@{ip}"
-                elif login and password:
-                    rtsp_url = f"rtsp://{login}:{password}@{ip}"
-                else:
-                    rtsp_url = f"rtsp://{ip}"
-
-                if port:
-                    rtsp_url += f":{port}"
-
-                rtsp_url += "/stream"
-                self.ui.rtspUrlInput.setText(rtsp_url)
-            else:
-                self.ui.rtspUrlInput.setText("")
+            
+            fields = {
+                'ip': self.ui.cameraIPInput.text().strip(),
+                'port': self.ui.cameraPortInput.text().strip(),
+                'login': self.ui.cameraLoginInput.text().strip(),
+                'password': self.ui.cameraPasswordInput.text().strip()
+            }
+            
+            updated_fields = self.validator.update_rtsp_from_fields(fields)
+            self.ui.rtspUrlInput.setText(updated_fields.get('rtsp_url', ''))
         finally:
             self.ui.rtspUrlInput.blockSignals(False)
 
     def update_fields_from_rtsp(self):
-        """Parses RTSP URL and updates individual fields"""
+        """Parses RTSP URL and updates individual fields using validator"""
         try:
             self.ui.cameraIPInput.blockSignals(True)
             self.ui.cameraPortInput.blockSignals(True)
             self.ui.cameraLoginInput.blockSignals(True)
             self.ui.cameraPasswordInput.blockSignals(True)
 
-            rtsp_url = self.ui.rtspUrlInput.text().strip()
+            fields = {'rtsp_url': self.ui.rtspUrlInput.text().strip()}
+            updated_fields = self.validator.update_fields_from_rtsp(fields)
 
-            self.ui.cameraLoginInput.setText("")
-            self.ui.cameraPasswordInput.setText("")
-            self.ui.cameraPortInput.setText("")
-            self.ui.cameraIPInput.setText("")
-
-            pattern = r'^rtsp://(?:([^:]+)(?::([^@]+))?@)?([^:/]+)(?::(\d+))?(?:/(.*))?$'
-            match = re.match(pattern, rtsp_url)
-
-            if match:
-                login, password, ip, port, path = match.groups()
-
-                if ip:
-                    self.ui.cameraIPInput.setText(ip)
-                if port:
-                    self.ui.cameraPortInput.setText(port)
-                if login:
-                    self.ui.cameraLoginInput.setText(login)
-                if password:
-                    self.ui.cameraPasswordInput.setText(password)
+            self.ui.cameraIPInput.setText(updated_fields.get('ip', ''))
+            self.ui.cameraPortInput.setText(updated_fields.get('port', ''))
+            self.ui.cameraLoginInput.setText(updated_fields.get('login', ''))
+            self.ui.cameraPasswordInput.setText(updated_fields.get('password', ''))
         finally:
             self.ui.cameraIPInput.blockSignals(False)
             self.ui.cameraPortInput.blockSignals(False)
