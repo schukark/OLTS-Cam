@@ -10,4 +10,3 @@ src/__pycache__
 .42c
 test_image*
 logs/
-*logs*
