@@ -41,10 +41,11 @@ class ModelThreadController(QObject):
         
         self.update_settings_timer = QTimer()
         self.update_settings_timer.timeout.connect(self.update_settings)
-        self.update_settings_timer.start(1000)
+        self.update_settings_timer.start(5000)
         
     def update_settings(self):
         """Push settings to screen."""
+        print(f"update {self.window.screens["camera"].is_focus()}")
         self.window.screens["camera"].load_settings()
         self.window.screens["model"].load_settings()
 

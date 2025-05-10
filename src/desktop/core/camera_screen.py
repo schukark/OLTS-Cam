@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Dict, Tuple
 from PySide6.QtWidgets import QMessageBox
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, QEvent
 
 """
 Camera Settings Module
@@ -118,7 +118,7 @@ class CameraSettingsValidator:
         return True, ""
 
 
-class CameraScreen:
+class CameraScreen(QObject):
     """
     Manages camera settings UI and interactions, including saving/loading settings
     and validating user input.
@@ -126,11 +126,11 @@ class CameraScreen:
     SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "settings" / "camera_settings.json"
 
     def __init__(self, ui, window):
+        super().__init__()
         self.ui = ui
         self.window = window
         self.validator = CameraSettingsValidator()
         self.setup_connections()
-        self.load_settings()
 
         default_settings = {
             'ip': '',
@@ -147,6 +147,8 @@ class CameraScreen:
             with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
                 json.dump(default_settings, f, ensure_ascii=False, indent=4)
 
+        self.load_settings()
+
     def setup_connections(self):
         """Connects UI signals to their respective handlers."""
         self.ui.saveCameraSettingsButton.clicked.connect(self.on_save_clicked)
@@ -156,69 +158,90 @@ class CameraScreen:
         self.ui.cameraPasswordInput.textChanged.connect(self.update_rtsp_from_fields)
         self.ui.rtspUrlInput.textChanged.connect(self.update_fields_from_rtsp)
 
+
+    def is_focus(self):
+        """Check focus for input fields"""
+        return self.ui.cameraIPInput.hasFocus() or \
+            self.ui.cameraPortInput.hasFocus() or  \
+            self.ui.cameraLoginInput.hasFocus() or  \
+            self.ui.cameraPasswordInput.hasFocus() or \
+            self.ui.rtspUrlInput.hasFocus() \
+        
+    def load_settings(self):
+        """Loads settings from JSON file if not editing"""
+        if self.SETTINGS_PATH.exists():
+            try:
+                with open(self.SETTINGS_PATH, 'r', encoding='utf-8') as f:
+                    settings = json.load(f)
+                    self.set_all_settings(settings)
+            except Exception as e:
+                print(f"Error loading settings: {str(e)}")
+
     def update_rtsp_from_fields(self):
-        """Updates the RTSP URL based on individual field values."""
-        self.ui.rtspUrlInput.blockSignals(True)
+        """Updates RTSP URL based on individual field values"""
+        try:
+            self.ui.rtspUrlInput.blockSignals(True)
 
-        ip = self.ui.cameraIPInput.text().strip()
-        port = self.ui.cameraPortInput.text().strip()
-        login = self.ui.cameraLoginInput.text().strip()
-        password = self.ui.cameraPasswordInput.text().strip()
-
-        if ip:
-            if login and (not password or password == ""):
-                rtsp_url = f"rtsp://{login}@{ip}"
-            elif login and password:
-                rtsp_url = f"rtsp://{login}:{password}@{ip}"
-            else:
-                rtsp_url = f"rtsp://{ip}"
-
-            if port:
-                rtsp_url += f":{port}"
-
-            rtsp_url += "/stream"
-            self.ui.rtspUrlInput.setText(rtsp_url)
-        else:
-            self.ui.rtspUrlInput.setText("")
-
-        self.ui.rtspUrlInput.blockSignals(False)
-
-    def update_fields_from_rtsp(self):
-        """Parses the RTSP URL and updates individual fields."""
-        self.ui.cameraIPInput.blockSignals(True)
-        self.ui.cameraPortInput.blockSignals(True)
-        self.ui.cameraLoginInput.blockSignals(True)
-        self.ui.cameraPasswordInput.blockSignals(True)
-
-        rtsp_url = self.ui.rtspUrlInput.text().strip()
-
-        self.ui.cameraLoginInput.setText("")
-        self.ui.cameraPasswordInput.setText("")
-        self.ui.cameraPortInput.setText("")
-        self.ui.cameraIPInput.setText("")
-
-        pattern = r'^rtsp://(?:([^:]+)(?::([^@]+))?@)?([^:/]+)(?::(\d+))?(?:/(.*))?$'
-        match = re.match(pattern, rtsp_url)
-
-        if match:
-            login, password, ip, port, path = match.groups()
+            ip = self.ui.cameraIPInput.text().strip()
+            port = self.ui.cameraPortInput.text().strip()
+            login = self.ui.cameraLoginInput.text().strip()
+            password = self.ui.cameraPasswordInput.text().strip()
 
             if ip:
-                self.ui.cameraIPInput.setText(ip)
-            if port:
-                self.ui.cameraPortInput.setText(port)
-            if login:
-                self.ui.cameraLoginInput.setText(login)
-            if password:
-                self.ui.cameraPasswordInput.setText(password)
+                if login and (not password or password == ""):
+                    rtsp_url = f"rtsp://{login}@{ip}"
+                elif login and password:
+                    rtsp_url = f"rtsp://{login}:{password}@{ip}"
+                else:
+                    rtsp_url = f"rtsp://{ip}"
 
-        self.ui.cameraIPInput.blockSignals(False)
-        self.ui.cameraPortInput.blockSignals(False)
-        self.ui.cameraLoginInput.blockSignals(False)
-        self.ui.cameraPasswordInput.blockSignals(False)
+                if port:
+                    rtsp_url += f":{port}"
+
+                rtsp_url += "/stream"
+                self.ui.rtspUrlInput.setText(rtsp_url)
+            else:
+                self.ui.rtspUrlInput.setText("")
+        finally:
+            self.ui.rtspUrlInput.blockSignals(False)
+
+    def update_fields_from_rtsp(self):
+        """Parses RTSP URL and updates individual fields"""
+        try:
+            self.ui.cameraIPInput.blockSignals(True)
+            self.ui.cameraPortInput.blockSignals(True)
+            self.ui.cameraLoginInput.blockSignals(True)
+            self.ui.cameraPasswordInput.blockSignals(True)
+
+            rtsp_url = self.ui.rtspUrlInput.text().strip()
+
+            self.ui.cameraLoginInput.setText("")
+            self.ui.cameraPasswordInput.setText("")
+            self.ui.cameraPortInput.setText("")
+            self.ui.cameraIPInput.setText("")
+
+            pattern = r'^rtsp://(?:([^:]+)(?::([^@]+))?@)?([^:/]+)(?::(\d+))?(?:/(.*))?$'
+            match = re.match(pattern, rtsp_url)
+
+            if match:
+                login, password, ip, port, path = match.groups()
+
+                if ip:
+                    self.ui.cameraIPInput.setText(ip)
+                if port:
+                    self.ui.cameraPortInput.setText(port)
+                if login:
+                    self.ui.cameraLoginInput.setText(login)
+                if password:
+                    self.ui.cameraPasswordInput.setText(password)
+        finally:
+            self.ui.cameraIPInput.blockSignals(False)
+            self.ui.cameraPortInput.blockSignals(False)
+            self.ui.cameraLoginInput.blockSignals(False)
+            self.ui.cameraPasswordInput.blockSignals(False)
 
     def get_all_settings(self) -> Dict[str, str]:
-        """Returns all current settings as a dictionary."""
+        """Returns all current settings as a dictionary"""
         return {
             'ip': self.ui.cameraIPInput.text().strip(),
             'port': self.ui.cameraPortInput.text().strip(),
@@ -228,20 +251,34 @@ class CameraScreen:
         }
 
     def set_all_settings(self, settings: Dict[str, str]):
-        """Applies settings from a dictionary to the UI fields."""
-        self.ui.cameraIPInput.setText(settings.get('ip', ''))
-        self.ui.cameraPortInput.setText(settings.get('port', ''))
-        self.ui.cameraLoginInput.setText(settings.get('login', ''))
-        self.ui.cameraPasswordInput.setText(settings.get('password', ''))
-        self.ui.rtspUrlInput.setText(settings.get('rtsp_url', ''))
+        """Applies settings from dictionary to UI fields"""
+        if not self.is_focus():
+            try:
+                self.ui.cameraIPInput.blockSignals(True)
+                self.ui.cameraPortInput.blockSignals(True)
+                self.ui.cameraLoginInput.blockSignals(True)
+                self.ui.cameraPasswordInput.blockSignals(True)
+                self.ui.rtspUrlInput.blockSignals(True)
+
+                self.ui.cameraIPInput.setText(settings.get('ip', ''))
+                self.ui.cameraPortInput.setText(settings.get('port', ''))
+                self.ui.cameraLoginInput.setText(settings.get('login', ''))
+                self.ui.cameraPasswordInput.setText(settings.get('password', ''))
+                self.ui.rtspUrlInput.setText(settings.get('rtsp_url', ''))
+            finally:
+                self.ui.cameraIPInput.blockSignals(False)
+                self.ui.cameraPortInput.blockSignals(False)
+                self.ui.cameraLoginInput.blockSignals(False)
+                self.ui.cameraPasswordInput.blockSignals(False)
+                self.ui.rtspUrlInput.blockSignals(False)
 
     def clear_highlight(self):
-        """Removes error highlighting from all input fields."""
+        """Removes error highlighting from all input fields"""
         for field in ['cameraIPInput', 'cameraPortInput', 'cameraLoginInput', 'rtspUrlInput']:
             getattr(self.ui, field).setStyleSheet("")
 
     def highlight_error_field(self, field_name: str):
-        """Highlights the specified input field to indicate an error."""
+        """Highlights the specified input field to indicate an error"""
         getattr(self.ui, field_name).setStyleSheet("border: 1px solid red;")
 
     def validate_all_fields(self):
@@ -280,30 +317,21 @@ class CameraScreen:
         return not has_errors, fields
 
     def on_save_clicked(self):
-        """Handles saving the settings after validation."""
+        """Handles saving the settings after validation"""
         is_valid, settings = self.validate_all_fields()
-
         if not is_valid:
             return
 
         try:
             self.save_settings(settings)
+            self.set_all_settings(settings)  # Явно обновляем UI
             QMessageBox.information(None, "Success", "Settings saved successfully!")
         except Exception as e:
             QMessageBox.critical(None, "Error", f"Failed to save settings: {str(e)}")
 
     def save_settings(self, settings: Dict[str, str]):
-        """Saves the settings to a JSON file."""
+        """Saves the settings to a JSON file"""
         self.window.update_frame(None, None, "Loading video")
         os.makedirs(self.SETTINGS_PATH.parent, exist_ok=True)
         with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
-
-    def load_settings(self):
-        """Loads settings from a JSON file if available."""
-        try:
-            if self.SETTINGS_PATH.exists():
-                with open(self.SETTINGS_PATH, 'r', encoding='utf-8') as f:
-                    self.set_all_settings(json.load(f))
-        except Exception:
-            pass

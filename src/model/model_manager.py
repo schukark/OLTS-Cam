@@ -134,7 +134,7 @@ class ModelManager:
         """
         Updates the settings and recreates the ModelRunner if needed.
         """
-        logging.info("Update settings called")
+        #logging.info("Update settings called")
         with self._lock:
             settings_changed, new_settings, new_hash = self._check_settings_changed()
 
@@ -248,7 +248,7 @@ class ModelManager:
         Args:
             db_manager: The database manager instance.
         """
-        logging.info("Attempting to process new incoming image")
+        #logging.info("Attempting to process new incoming image")
 
         if self._current_runner is None:
             logging.debug("Current runner is None")
