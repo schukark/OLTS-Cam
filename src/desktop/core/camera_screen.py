@@ -6,69 +6,124 @@ from typing import Dict, Tuple
 from PySide6.QtWidgets import QMessageBox
 from PySide6.QtCore import QObject, Signal
 
+"""
+Camera Settings Module
+
+This module handles camera configuration, including IP, port, RTSP URL validation,
+and persisting camera settings.
+
+Classes:
+    CameraSettingsValidator - Validates camera connection parameters.
+    CameraScreen - Manages the camera settings UI and operations.
+"""
+
 
 class CameraSettingsValidator:
+    """
+    Validates camera connection parameters.
+
+    Methods:
+        - validate_ip: Checks the format of an IP address.
+        - validate_port: Checks the validity of a port number.
+        - validate_rtsp_url: Validates the RTSP URL format.
+        - validate_login: Validates login credentials (allows empty values).
+    """
+
     def validate_ip(self, ip: str) -> Tuple[bool, str]:
-        """Валидация IP-адреса с обработкой всех возможных ошибок"""
+        """
+        Validates the format of an IP address.
+
+        Args:
+            ip: The IP address string to validate.
+
+        Returns:
+            Tuple[bool, str]: (is_valid, error_message)
+        """
         if not ip or ip == "":
-            return False, "IP-адрес не может быть пустым"
+            return False, "IP address cannot be empty."
 
         ip = ip.strip()
 
-        # Проверка на строку "aaa" или другие нечисловые значения
         if not re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
-            return False, "Неверный формат IP-адреса. Пример: 192.168.1.1"
+            return False, "Invalid IP address format. Example: 192.168.1.1"
 
         octets = ip.split('.')
         if len(octets) != 4:
-            return False, "IP-адрес должен содержать 4 октета"
+            return False, "IP address must contain 4 octets."
 
         for octet in octets:
             if not octet.isdigit():
-                return False, "Каждый октет должен быть числом"
+                return False, "Each octet must be a number."
 
             num = int(octet)
             if not 0 <= num <= 255:
-                return False, "Каждый октет должен быть от 0 до 255"
+                return False, "Each octet must be between 0 and 255."
 
             if len(octet) > 1 and octet[0] == '0':
-                return False, "Октет не должен содержать ведущих нулей"
+                return False, "Octets must not have leading zeros."
 
         return True, ""
 
     def validate_port(self, port: str) -> Tuple[bool, str]:
-        """Валидация порта (может быть пустым)"""
+        """
+        Validates the port number (optional field).
+
+        Args:
+            port: The port number string to validate.
+
+        Returns:
+            Tuple[bool, str]: (is_valid, error_message)
+        """
         if not port:
             return True, ""
 
         if not port.isdigit():
-            return False, "Порт должен быть числом"
+            return False, "Port must be a number."
 
         port_num = int(port)
         if not 1 <= port_num <= 65535:
-            return False, "Порт должен быть в диапазоне 1-65535"
+            return False, "Port must be between 1 and 65535."
 
         return True, ""
 
     def validate_rtsp_url(self, url: str) -> Tuple[bool, str]:
-        """Валидация RTSP URL"""
+        """
+        Validates the RTSP URL format.
+
+        Args:
+            url: The RTSP URL string to validate.
+
+        Returns:
+            Tuple[bool, str]: (is_valid, error_message)
+        """
         if not url:
-            return False, "RTSP URL не может быть пустым"
+            return False, "RTSP URL cannot be empty."
 
         rtsp_pattern = r'^rtsp://(?:[^:@/]+(?::[^@/]+)?@)?[^:/]+(?::\d+)?(?:/.*)?$'
         if not re.match(rtsp_pattern, url, re.IGNORECASE):
-            return False, "Неверный формат RTSP URL. Пример: rtsp://admin:12345@8.8.8.8:554/stream"
+            return False, "Invalid RTSP URL format. Example: rtsp://admin:12345@8.8.8.8:554/stream"
 
         return True, ""
 
     def validate_login(self, login: str) -> Tuple[bool, str]:
-        """Валидация логина (может быть пустым)"""
+        """
+        Validates the login field (allows empty value).
+
+        Args:
+            login: The login string to validate.
+
+        Returns:
+            Tuple[bool, str]: (is_valid, error_message)
+        """
         return True, ""
 
 
 class CameraScreen:
-    SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / \
-        "settings" / "camera_settings.json"
+    """
+    Manages camera settings UI and interactions, including saving/loading settings
+    and validating user input.
+    """
+    SETTINGS_PATH = Path(__file__).parent.parent.parent.parent / "settings" / "camera_settings.json"
 
     def __init__(self, ui, window):
         self.ui = ui
@@ -93,22 +148,16 @@ class CameraScreen:
                 json.dump(default_settings, f, ensure_ascii=False, indent=4)
 
     def setup_connections(self):
-        """Подключение сигналов"""
+        """Connects UI signals to their respective handlers."""
         self.ui.saveCameraSettingsButton.clicked.connect(self.on_save_clicked)
-
-        # Подключаем обработчики изменений полей
         self.ui.cameraIPInput.textChanged.connect(self.update_rtsp_from_fields)
-        self.ui.cameraPortInput.textChanged.connect(
-            self.update_rtsp_from_fields)
-        self.ui.cameraLoginInput.textChanged.connect(
-            self.update_rtsp_from_fields)
-        self.ui.cameraPasswordInput.textChanged.connect(
-            self.update_rtsp_from_fields)
+        self.ui.cameraPortInput.textChanged.connect(self.update_rtsp_from_fields)
+        self.ui.cameraLoginInput.textChanged.connect(self.update_rtsp_from_fields)
+        self.ui.cameraPasswordInput.textChanged.connect(self.update_rtsp_from_fields)
         self.ui.rtspUrlInput.textChanged.connect(self.update_fields_from_rtsp)
 
     def update_rtsp_from_fields(self):
-        """Обновляет RTSP URL на основе отдельных полей"""
-        # Временно отключаем обработчик, чтобы избежать рекурсии
+        """Updates the RTSP URL based on individual field values."""
         self.ui.rtspUrlInput.blockSignals(True)
 
         ip = self.ui.cameraIPInput.text().strip()
@@ -117,30 +166,25 @@ class CameraScreen:
         password = self.ui.cameraPasswordInput.text().strip()
 
         if ip:
-            # Формируем базовую часть URL
             if login and (not password or password == ""):
                 rtsp_url = f"rtsp://{login}@{ip}"
-            if login and password:
+            elif login and password:
                 rtsp_url = f"rtsp://{login}:{password}@{ip}"
             else:
                 rtsp_url = f"rtsp://{ip}"
 
-            # Добавляем порт, если он указан
             if port:
                 rtsp_url += f":{port}"
 
-            # Добавляем путь к потоку
             rtsp_url += "/stream"
             self.ui.rtspUrlInput.setText(rtsp_url)
         else:
             self.ui.rtspUrlInput.setText("")
 
-        # Включаем обработчик обратно
         self.ui.rtspUrlInput.blockSignals(False)
 
     def update_fields_from_rtsp(self):
-        """Извлекает значения из RTSP URL в отдельные поля"""
-        # Временно отключаем обработчики, чтобы избежать рекурсии
+        """Parses the RTSP URL and updates individual fields."""
         self.ui.cameraIPInput.blockSignals(True)
         self.ui.cameraPortInput.blockSignals(True)
         self.ui.cameraLoginInput.blockSignals(True)
@@ -148,13 +192,11 @@ class CameraScreen:
 
         rtsp_url = self.ui.rtspUrlInput.text().strip()
 
-        # Очищаем поля перед заполнением
         self.ui.cameraLoginInput.setText("")
         self.ui.cameraPasswordInput.setText("")
         self.ui.cameraPortInput.setText("")
         self.ui.cameraIPInput.setText("")
 
-        # Улучшенный парсинг RTSP URL
         pattern = r'^rtsp://(?:([^:]+)(?::([^@]+))?@)?([^:/]+)(?::(\d+))?(?:/(.*))?$'
         match = re.match(pattern, rtsp_url)
 
@@ -170,14 +212,13 @@ class CameraScreen:
             if password:
                 self.ui.cameraPasswordInput.setText(password)
 
-        # Включаем обработчики обратно
         self.ui.cameraIPInput.blockSignals(False)
         self.ui.cameraPortInput.blockSignals(False)
         self.ui.cameraLoginInput.blockSignals(False)
         self.ui.cameraPasswordInput.blockSignals(False)
 
     def get_all_settings(self) -> Dict[str, str]:
-        """Получает все настройки в виде словаря"""
+        """Returns all current settings as a dictionary."""
         return {
             'ip': self.ui.cameraIPInput.text().strip(),
             'port': self.ui.cameraPortInput.text().strip(),
@@ -187,7 +228,7 @@ class CameraScreen:
         }
 
     def set_all_settings(self, settings: Dict[str, str]):
-        """Устанавливает все настройки из словаря"""
+        """Applies settings from a dictionary to the UI fields."""
         self.ui.cameraIPInput.setText(settings.get('ip', ''))
         self.ui.cameraPortInput.setText(settings.get('port', ''))
         self.ui.cameraLoginInput.setText(settings.get('login', ''))
@@ -195,23 +236,26 @@ class CameraScreen:
         self.ui.rtspUrlInput.setText(settings.get('rtsp_url', ''))
 
     def clear_highlight(self):
-        """Убирает подсветку со всех полей"""
-        for field in ['cameraIPInput', 'cameraPortInput',
-                      'cameraLoginInput', 'rtspUrlInput']:
+        """Removes error highlighting from all input fields."""
+        for field in ['cameraIPInput', 'cameraPortInput', 'cameraLoginInput', 'rtspUrlInput']:
             getattr(self.ui, field).setStyleSheet("")
 
     def highlight_error_field(self, field_name: str):
-        """Подсвечивает поле с ошибкой"""
+        """Highlights the specified input field to indicate an error."""
         getattr(self.ui, field_name).setStyleSheet("border: 1px solid red;")
 
     def validate_all_fields(self):
-        """Валидация всех полей с подсветкой ошибок"""
+        """
+        Validates all fields and highlights any with errors.
+
+        Returns:
+            Tuple[bool, Dict[str, str]]: (is_valid, settings)
+        """
         self.clear_highlight()
         fields = self.get_all_settings()
         has_errors = False
         error = ""
 
-        # Проверка IP (теперь с обработкой всех ошибок)
         valid_ip, ip_error = self.validator.validate_ip(fields['ip'])
         if not valid_ip:
             self.highlight_error_field('cameraIPInput')
@@ -224,21 +268,19 @@ class CameraScreen:
             error += port_error + "\n"
             has_errors = True
 
-        # Проверка RTSP URL
-        valid_rtsp, rtsp_error = self.validator.validate_rtsp_url(
-            fields['rtsp_url'])
+        valid_rtsp, rtsp_error = self.validator.validate_rtsp_url(fields['rtsp_url'])
         if not valid_rtsp:
             self.highlight_error_field('rtspUrlInput')
             error += rtsp_error + "\n"
             has_errors = True
 
         if has_errors:
-            QMessageBox.warning(None, "Ошибка", error)
+            QMessageBox.warning(None, "Error", error)
 
         return not has_errors, fields
 
     def on_save_clicked(self):
-        """Обработчик сохранения с валидацией"""
+        """Handles saving the settings after validation."""
         is_valid, settings = self.validate_all_fields()
 
         if not is_valid:
@@ -246,21 +288,19 @@ class CameraScreen:
 
         try:
             self.save_settings(settings)
-            QMessageBox.information(
-                None, "Успех", "Настройки успешно сохранены!")
+            QMessageBox.information(None, "Success", "Settings saved successfully!")
         except Exception as e:
-            QMessageBox.critical(
-                None, "Ошибка", f"Ошибка сохранения: {str(e)}")
+            QMessageBox.critical(None, "Error", f"Failed to save settings: {str(e)}")
 
     def save_settings(self, settings: Dict[str, str]):
-        """Сохраняет настройки в файл"""
-        self.window.update_frame(None, None, "Загрузка видео")
+        """Saves the settings to a JSON file."""
+        self.window.update_frame(None, None, "Loading video")
         os.makedirs(self.SETTINGS_PATH.parent, exist_ok=True)
         with open(self.SETTINGS_PATH, 'w', encoding='utf-8') as f:
             json.dump(settings, f, ensure_ascii=False, indent=4)
 
     def load_settings(self):
-        """Загружает настройки из файла"""
+        """Loads settings from a JSON file if available."""
         try:
             if self.SETTINGS_PATH.exists():
                 with open(self.SETTINGS_PATH, 'r', encoding='utf-8') as f:

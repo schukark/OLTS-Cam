@@ -6,10 +6,10 @@ from threading import Thread, Lock, Event
 from PySide6.QtGui import QImage
 from time import sleep
 
-from torchvision.models.detection import \
-    SSDLite320_MobileNet_V3_Large_Weights as ModelWeights
-from torchvision.models.detection import \
+from torchvision.models.detection import (
+    SSDLite320_MobileNet_V3_Large_Weights as ModelWeights,
     ssdlite320_mobilenet_v3_large as model_create
+)
 from torchvision.utils import draw_bounding_boxes
 
 import logging
@@ -18,7 +18,19 @@ setup_logger(__name__)
 
 
 class ModelRunner:
+    """
+    Handles the initialization of the object detection model, frame capture from
+    the camera, and running predictions. Manages its own background thread to keep
+    the latest frame ready for processing.
+    """
+
     def __init__(self, settings):
+        """
+        Initializes the ModelRunner.
+
+        Args:
+            settings (dict): Configuration settings including camera and model parameters.
+        """
         self.weights = ModelWeights.COCO_V1
         self.settings = settings
         self.capture = None
@@ -31,13 +43,13 @@ class ModelRunner:
 
         if self._init_model():
             try:
-                self.capture_thread = Thread(
-                    target=self._capture_frames, daemon=True)
+                self.capture_thread = Thread(target=self._capture_frames, daemon=True)
                 self.capture_thread.start()
             except Exception as e:
                 self.error_msg = f"Thread start failed: {str(e)}"
 
     def _init_model(self):
+        """Initializes the model and video capture."""
         try:
             self.model = model_create(
                 weights=self.weights,
@@ -52,12 +64,12 @@ class ModelRunner:
             return False
 
     def _init_capture(self):
+        """Initializes the video capture stream."""
         if self.capture and self.capture.isOpened():
             self.capture.release()
 
         try:
-            self.capture = cv2.VideoCapture(
-                self.settings["rtsp_url"], cv2.CAP_FFMPEG)
+            self.capture = cv2.VideoCapture(self.settings["rtsp_url"], cv2.CAP_FFMPEG)
             if self.capture.isOpened():
                 self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
                 self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -72,6 +84,7 @@ class ModelRunner:
             return False
 
     def _capture_frames(self):
+        """Background thread function to continuously capture frames."""
         while not self._stop_event.is_set():
             try:
                 if not self.capture or not self.capture.isOpened():
@@ -90,15 +103,22 @@ class ModelRunner:
                     if not self._reconnect_capture():
                         sleep(0.1)
             except Exception as e:
-                print(f"Capture error: {e}")
+                logging.error(f"Capture error: {e}")
                 self._reconnect_capture()
 
     def _reconnect_capture(self):
+        """Attempts to reconnect the video capture stream."""
         if self.capture:
             self.capture.release()
         return self._init_capture()
 
     def predict_boxes(self):
+        """
+        Runs inference on the latest captured frame.
+
+        Returns:
+            tuple or None: (img_tensor, boxes, labels) if successful, None otherwise.
+        """
         logging.info("Predicting boxes")
         if not self.frame_ready.wait(timeout=5.0):
             self.error_msg = "No frames available yet (timeout)"
@@ -115,11 +135,9 @@ class ModelRunner:
             logging.debug("Consumed latest frame")
 
         try:
-            img_tensor = torch.from_numpy(
-                frame).permute(2, 0, 1).float() / 255.0
+            img_tensor = torch.from_numpy(frame).permute(2, 0, 1).float() / 255.0
             prediction = self.model([img_tensor])[0]
-            labels = [self.weights.meta["categories"][i]
-                      for i in prediction["labels"]]
+            labels = [self.weights.meta["categories"][i] for i in prediction["labels"]]
             logging.debug("Computed predictions and labels")
             return img_tensor, prediction["boxes"].detach(), labels
         except Exception as e:
@@ -127,16 +145,25 @@ class ModelRunner:
             return None
 
     def show_boxes(self, img_tensor, boxes, labels):
+        """
+        Draws bounding boxes and labels on the image.
+
+        Args:
+            img_tensor (torch.Tensor): The original image tensor.
+            boxes (torch.Tensor): Bounding box coordinates.
+            labels (list): List of label strings.
+
+        Returns:
+            tuple: (original QImage, annotated QImage)
+        """
         logging.info("Called show_boxes")
         try:
-            img_np = (img_tensor.permute(1, 2, 0).detach().numpy()
-                      * 255).astype('uint8')
+            img_np = (img_tensor.permute(1, 2, 0).detach().numpy() * 255).astype('uint8')
 
             if len(boxes) == 0:
                 logging.debug("Received image with no boxes")
                 h, w, ch = img_np.shape
-                img_qimage = QImage(img_np.data, w, h, 3 *
-                                    w, QImage.Format_RGB888)
+                img_qimage = QImage(img_np.data, w, h, 3 * w, QImage.Format_RGB888)
                 return img_qimage.copy(), img_qimage.copy()
 
             box_img = draw_bounding_boxes(
@@ -152,10 +179,8 @@ class ModelRunner:
             logging.debug("Computed output image")
 
             h, w, ch = img_np.shape
-            img_qimage = QImage(img_np.data, w, h, ch *
-                                w, QImage.Format_RGB888)
-            box_qimage = QImage(box_img.data, w, h, ch *
-                                w, QImage.Format_RGB888)
+            img_qimage = QImage(img_np.data, w, h, ch * w, QImage.Format_RGB888)
+            box_qimage = QImage(box_img.data, w, h, ch * w, QImage.Format_RGB888)
 
             return img_qimage, box_qimage
         except Exception as e:
@@ -163,7 +188,7 @@ class ModelRunner:
             return None, None
 
     def release(self):
-        """Properly clean up resources"""
+        """Stops the capture thread and releases resources."""
         self._stop_event.set()
 
         if hasattr(self, 'capture_thread') and self.capture_thread.is_alive():

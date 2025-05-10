@@ -51,7 +51,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="homePage">
        <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -82,7 +82,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Настройка камеры</string>
+           <string>Camera Settings</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -98,7 +98,7 @@
            </size>
           </property>
           <property name="placeholderText">
-           <string>Введите IP камеры</string>
+           <string>Enter camera IP</string>
           </property>
          </widget>
         </item>
@@ -111,7 +111,7 @@
            </size>
           </property>
           <property name="placeholderText">
-           <string>Введите порт камеры</string>
+           <string> Enter camera port</string>
           </property>
          </widget>
         </item>
@@ -124,7 +124,7 @@
            </size>
           </property>
           <property name="placeholderText">
-           <string>Введите логин камеры</string>
+           <string>Enter your camera login</string>
           </property>
          </widget>
         </item>
@@ -140,7 +140,7 @@
            <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
           </property>
           <property name="placeholderText">
-           <string>Введите пароль камеры</string>
+           <string>Enter the camera password</string>
           </property>
          </widget>
         </item>
@@ -153,7 +153,7 @@
            </size>
           </property>
           <property name="placeholderText">
-           <string>Введите RTSP URL</string>
+           <string>Enter and correct RTSP URL</string>
           </property>
          </widget>
         </item>
@@ -171,7 +171,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Сохранить настройки камеры</string>
+           <string>Save Camera Settings</string>
           </property>
          </widget>
         </item>
@@ -203,7 +203,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Настройка модели, базы данных и файловой системы</string>
+           <string>Model, Database, and Filesystem Settings</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -228,7 +228,7 @@
            <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
           </property>
           <property name="placeholderText">
-           <string>Введите токет к Telegram-боту</string>
+           <string>Enter the token to the Telegram bot</string>
           </property>
          </widget>
         </item>
@@ -241,7 +241,7 @@
            </size>
           </property>
           <property name="placeholderText">
-           <string>Введите количество распознаваемых объектов за кадр (от 3 до 15)</string>
+           <string>Enter the number of objects to recognize per frame (from 3 to 15)</string>
           </property>
          </widget>
         </item>
@@ -254,7 +254,20 @@
            </size>
           </property>
           <property name="placeholderText">
-           <string>Введите количество кадров в секунду</string>
+           <string>Enter the number of frames per second</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Object identification threshold:</string>
           </property>
          </widget>
         </item>
@@ -294,7 +307,7 @@
               </size>
              </property>
              <property name="placeholderText">
-              <string>Введите порог идентификации объектов</string>
+              <string> Enter the object identification threshold</string>
              </property>
             </widget>
            </item>
@@ -323,7 +336,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Папка для сохранения:</string>
+           <string>Save Folder:</string>
           </property>
          </widget>
         </item>
@@ -369,7 +382,7 @@
               </size>
              </property>
              <property name="placeholderText">
-              <string>Выберите папку для сохранения</string>
+              <string>Select a folder to save</string>
              </property>
             </widget>
            </item>
@@ -388,7 +401,7 @@
               </size>
              </property>
              <property name="text">
-              <string>Обзор...</string>
+              <string>Browse...</string>
              </property>
             </widget>
            </item>
@@ -409,7 +422,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Сохранить настройки модели</string>
+           <string>Save Model Settings</string>
           </property>
          </widget>
         </item>
@@ -432,7 +445,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Воспроизведение видео</string>
+           <string>Video Playback</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -447,7 +460,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Загрузка видео</string>
+           <string>Loading Video</string>
           </property>
           <property name="textFormat">
            <enum>Qt::TextFormat::AutoText</enum>
@@ -475,7 +488,7 @@
            <enum>Qt::LayoutDirection::LeftToRight</enum>
           </property>
           <property name="text">
-           <string>Показать боксы объектов</string>
+           <string>Show Object Boxes</string>
           </property>
          </widget>
         </item>
@@ -506,7 +519,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Главная</string>
+          <string>Home</string>
          </property>
         </widget>
        </item>
@@ -524,7 +537,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Настройка камеры</string>
+          <string>Camera Settings</string>
          </property>
         </widget>
        </item>
@@ -542,7 +555,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Настройка модели</string>
+          <string>Model Settings</string>
          </property>
         </widget>
        </item>
@@ -560,7 +573,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Воспроизведение</string>
+          <string>Playback</string>
          </property>
         </widget>
        </item>
