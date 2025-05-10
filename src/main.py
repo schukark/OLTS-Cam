@@ -38,6 +38,15 @@ class ModelThreadController(QObject):
         self.push_timer = QTimer()
         self.push_timer.timeout.connect(self.push_to_db)
         self.push_timer.start(5000)  # Trigger every 5 seconds
+        
+        self.update_settings_timer = QTimer()
+        self.update_settings_timer.timeout.connect(self.update_settings)
+        self.update_settings_timer.start(1000)
+        
+    def update_settings(self):
+        """Push settings to screen."""
+        self.window.screens["camera"].load_settings()
+        self.window.screens["model"].load_settings()
 
     def push_to_db(self):
         """Push data to the database at regular intervals."""
