@@ -19,7 +19,7 @@ class SettingsInner(BaseModel):
 class Receiver(str, Enum):
     """
     Enum representing the possible receivers of the settings.
-    
+
     - Camera: The settings apply to a camera.
     - Model: The settings apply to a model.
     """
