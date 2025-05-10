@@ -46,6 +46,7 @@ class ModelThreadController(QObject):
         target_fps = 20
         if (st and st["fps"]):
             target_fps = st["fps"]
+        print(target_fps)
 
         last_settings_check = time()
         settings_check_interval = 1.0

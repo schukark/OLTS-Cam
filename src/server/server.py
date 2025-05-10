@@ -23,23 +23,32 @@ setup_logger(__name__)
 @app.get("/settings/{rcv}")
 async def get_settings(rcv: Receiver, response: Response) \
         -> Optional[Settings]:
-    logging.info("Asked for settings")
-    if not os.path.exists(f"settings/settings_{rcv}.json"):
+    logging.info(f"Asked for settings for settings/{rcv.value}_settings.json")
+    if not os.path.exists(f"settings/{rcv.value}_settings.json"):
         response.status_code = 422
         logging.debug("File with settings was not found")
         return None
 
-    with open(f"settings/settings_{rcv}.json", "r") as settings_file:
+    with open(f"settings/{rcv.value}_settings.json", "r") as settings_file:
         settings: Dict[Any, Any] = from_json(
             "\n".join(settings_file.readlines()))
 
     logging.debug("Opened settings file successfully")
 
-    return Settings(**settings)
+    value_list = {}
+    value_list["receiver"] = rcv
+    settings_list = []
+
+    for (key, value) in settings.items():
+        settings_list.append({"key": key, "value": value})
+
+    value_list["settings"] = settings_list
+
+    return Settings(**value_list)
 
 
 def check_rcv_type(x: Dict[str, Any], rcv: Receiver) -> bool:
-    return x["receiver"] == rcv
+    return x["receiver"] == rcv.value
 
 
 @app.get("/object/{name}")
@@ -88,13 +97,12 @@ async def get_objects() -> Optional[ObjectPhoto]:
 @app.post("/settings/")
 async def change_settings(new_settings: Settings, response: Response):
     logging.info("Asked to change settings")
-    with open(f"settings/settings_{new_settings.receiver}.json", "r") \
+    with open(f"settings/{new_settings.receiver.value}_settings.json", "r") \
             as settings_file:
         cur_settings: Dict[Any, Any] = from_json(
             "\n".join(settings_file.readlines()))
 
-    name_set = list(map(lambda x: x["key"], cur_settings["settings"]))
-    print(name_set)
+    name_set = list(cur_settings.keys())
 
     for new_setting_pair in new_settings.settings:
         if new_setting_pair.key not in name_set:
@@ -103,20 +111,13 @@ async def change_settings(new_settings: Settings, response: Response):
             response.status_code = 422
             return None
 
-        setting_index: int = list(filter(  # type: ignore
-            lambda i: cur_settings["settings"][i]["key"] ==
-            new_setting_pair.key,
-            range(len(cur_settings["settings"])))  # type: ignore
-        )[0]
-
-        cur_settings["settings"][setting_index]["value"] = \
-            new_setting_pair.value
+        cur_settings[new_setting_pair.key] = new_setting_pair.value
 
         logging.debug(
             f"Changed setting {new_setting_pair.key} \
                 to {new_setting_pair.value}")
 
-    with open(f"settings/settings_{new_settings.receiver}.json", "w") \
+    with open(f"settings/{new_settings.receiver.value}_settings.json", "w") \
             as settings_file:
         settings_file.write(json.dumps(cur_settings))
 
