@@ -4,7 +4,7 @@ version = "0.3.0"
 edition = "2021"
 
 [dependencies]
-teloxide = { version = "0.13.0", features = ["macros", "throttle"] }
+teloxide = { version = "0.15.0", features = ["macros", "throttle"] }
 log = "0.4.27"
 tokio = { version = "1.44.2", features = ["rt-multi-thread", "macros"] }
 dotenv = "0.15.0"
@@ -23,9 +23,13 @@ chrono = "0.4.41"
 cargo-llvm-cov = "0.6.16"
 httpmock = { version = "0.7.0", features = ["remote"] }
 serial_test = "3.2.0"
-teloxide_tests = "0.2.0"
+teloxide_tests = "0.3.0"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
     'cfg(coverage,coverage_nightly)',
 ] }
+
+[[bin]]
+name = "bot"
+path = "src/bot/main.rs"
