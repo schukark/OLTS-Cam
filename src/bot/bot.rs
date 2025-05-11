@@ -253,7 +253,8 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
+            let mut bot =
+                MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
             bot.dependencies(dptree::deps![api]);
 
             timeout(
@@ -281,7 +282,8 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
+            let mut bot =
+                MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
             bot.dependencies(dptree::deps![api]);
 
             timeout(
@@ -311,7 +313,8 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
+            let mut bot =
+                MockBot::new(MockMessageText::new().text("/currentstate"), handler_tree());
             bot.dependencies(dptree::deps![api]);
 
             timeout(Duration::from_secs(1), bot.dispatch()).await?;
@@ -341,7 +344,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text("/whereis apple"),
                 handler_tree(),
             );
@@ -372,7 +375,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text("/whereis apple"),
                 handler_tree(),
             );
@@ -405,7 +408,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text("/whereis apple"),
                 handler_tree(),
             );
@@ -435,7 +438,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text("/getsettings apple"),
                 handler_tree(),
             );
@@ -464,7 +467,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text("/getsettings camera"),
                 handler_tree(),
             );
@@ -496,7 +499,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text("/getsettings camera"),
                 handler_tree(),
             );
@@ -528,7 +531,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text("/getsettings camera"),
                 handler_tree(),
             );
@@ -557,7 +560,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
             let body = "value value value value";
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text(format!("/changesettings {body}")),
                 handler_tree(),
             );
@@ -579,7 +582,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
             let body = "aboba FPS 30";
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text(format!("/changesettings {body}")),
                 handler_tree(),
             );
@@ -611,7 +614,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text(format!("/changesettings {body}")),
                 handler_tree(),
             );
@@ -642,7 +645,7 @@ mod tests {
 
             let api = ApiClient::new(server.address().to_string());
 
-            let bot = MockBot::new(
+            let mut bot = MockBot::new(
                 MockMessageText::new().text(format!("/changesettings {body}")),
                 handler_tree(),
             );
