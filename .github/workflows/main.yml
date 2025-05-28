@@ -27,9 +27,11 @@ jobs:
     - name: Generate documentation
       run: |
         # Устанавливаем PYTHONPATH для корректных импортов
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-        # Генерируем документацию с явным указанием модулей
-        pdoc --html -o ./docs src/__init__.py src/server src/database src/utils src/model src/desktop --force
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
+        # Устанавливаем пакет в development mode
+        pip install -e .
+        # Генерируем документацию
+        pdoc --html -o ./docs src --force
         # Перемещаем документацию в корень docs для GitHub Pages
         mv ./docs/src/* ./docs/
         rm -r ./docs/src
