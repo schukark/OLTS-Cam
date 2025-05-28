@@ -2,7 +2,7 @@ name: Rust
 
 on:
   push:
-    branches: ["telegram-bot"]
+    branches: ["telegram-bot", "main"]
   pull_request:
     branches: ["telegram-bot"]
 
