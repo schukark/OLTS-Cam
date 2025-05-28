@@ -12,8 +12,7 @@ setup_logger(__name__)
 
 
 class ApplicationWindow(QMainWindow):
-    """
-    The main application window that handles screen navigation and video updates.
+    """The main application window that handles screen navigation and video updates.
 
     Attributes:
         ui (Ui_MainWindow): The UI object for the main window.

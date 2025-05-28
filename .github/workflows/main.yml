@@ -1,4 +1,3 @@
-
 name: Generate & Deploy Python Docs
 
 permissions:
@@ -14,8 +13,6 @@ jobs:
   build-and-deploy-docs:
     runs-on: ubuntu-latest
 
-    # делаем так, чтобы при import server, import database и т.п.
-    # питон искал модули в папке src
     env:
       PYTHONPATH: ${{ github.workspace }}/src
 
@@ -52,17 +49,13 @@ jobs:
       - name: Generate docs
         run: |
           rm -rf docs
-          pdoc \
+          # Переходим в папку src и генерируем документацию только для нее
+          cd src && pdoc \
             --html \
             --force \
             --skip-errors \
-            -o docs \
-            bot \
-            database \
-            server \
-            model \
-            desktop \
-            utils
+            -o ../docs \
+            .
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
