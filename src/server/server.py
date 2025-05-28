@@ -3,6 +3,8 @@ import os
 from typing import Any, Dict, Optional
 import logging
 
+from utils.camera_settings_validator import CameraSettingsValidator
+from utils.model_settings_validator import ModelSettingsValidator
 import uvicorn
 from fastapi import FastAPI, Response
 
@@ -147,8 +149,19 @@ async def change_settings(new_settings: Settings, response: Response):
             "\n".join(settings_file.readlines()))
 
     # Get the names of current settings
-    name_set = list(map(lambda x: x["key"], cur_settings["settings"]))
+    print(cur_settings)
+    name_set = list(map(lambda x: x, cur_settings))
     logging.debug(f"Current settings: {name_set}")
+    
+    # Validation
+    old_rtsp = None
+    if new_settings.receiver.value == "camera":
+        validator = CameraSettingsValidator()
+        old_rtsp = cur_settings["rtsp_url"]
+    else:
+        validator = ModelSettingsValidator()
+        
+    fields = {}
 
     for new_setting_pair in new_settings.settings:
         if new_setting_pair.key not in name_set:
@@ -156,11 +169,26 @@ async def change_settings(new_settings: Settings, response: Response):
                 f"Setting {new_setting_pair.key} not found in current settings.")
             response.status_code = 422
             return None
+        bar = getattr(validator, f'validate_{new_setting_pair.key}')
+        valid_count, _ = bar(new_setting_pair.value)
+        
+        if not valid_count:
+            response.status_code = 421
+            return None
+        
         cur_settings[new_setting_pair.key] = new_setting_pair.value
+        fields[new_setting_pair.key] = new_setting_pair.value
 
         logging.debug(
             f"Changed setting {new_setting_pair.key} \
                 to {new_setting_pair.value}")
+    if isinstance(validator, CameraSettingsValidator):
+        new_rtsp_url = filter(lambda x: x["key"] == "rtsp_url", new_settings.settings)
+        
+        if old_rtsp != new_rtsp_url:
+            validator.update_fields_from_rtsp(fields)
+        else:
+            validator.update_rtsp_from_fields(fields)
 
     with open(f"settings/{new_settings.receiver.value}_settings.json", "w") \
             as settings_file:
