@@ -149,7 +149,6 @@ async def change_settings(new_settings: Settings, response: Response):
             "\n".join(settings_file.readlines()))
 
     # Get the names of current settings
-    print(cur_settings)
     name_set = list(map(lambda x: x, cur_settings))
     logging.debug(f"Current settings: {name_set}")
     
@@ -181,21 +180,30 @@ async def change_settings(new_settings: Settings, response: Response):
             return None
         
         cur_settings[new_setting_pair.key] = new_setting_pair.value
+        fields[new_setting_pair.key] = new_setting_pair.value
 
         logging.debug(
             f"Changed setting {new_setting_pair.key} \
                 to {new_setting_pair.value}")
     if isinstance(validator, CameraSettingsValidator):
-        new_rtsp_url = filter(lambda x: x["key"] == "rtsp_url", new_settings.settings)
-        
-        if old_rtsp != new_rtsp_url:
-            validator.update_fields_from_rtsp(fields)
+        new_rtsp_url = list(filter(lambda x: x.key == "rtsp_url", new_settings.settings))
+        if new_rtsp_url == []:
+            new_rtsp_url = None
         else:
-            validator.update_rtsp_from_fields(fields)
+            new_rtsp_url = new_rtsp_url[0]
+        
+        logging.info(fields)
+        logging.info(new_rtsp_url)
+        if new_rtsp_url is not None:
+            fields = validator.update_fields_from_rtsp(fields)
+        else:
+            fields = validator.update_rtsp_from_fields(fields)
+        
+        logging.info(fields)
 
     with open(f"settings/{new_settings.receiver.value}_settings.json", "w") \
             as settings_file:
-        settings_file.write(json.dumps(cur_settings))
+        settings_file.write(json.dumps(fields))
         logging.info(f"Settings updated for receiver {new_settings.receiver}")
 
 
