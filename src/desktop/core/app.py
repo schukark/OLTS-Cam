@@ -81,3 +81,100 @@ class ApplicationWindow(QMainWindow):
             error_msg (str, optional): An error message to display instead of frames.
         """
         self.screens['video'].update_frame(image1, image2, error_msg)
+
+    def set_style(self):
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #f8f9fa;
+            }
+            
+            QStackedWidget, QWidget {
+                background-color: #f8f9fa;
+                color: #212529;
+            }
+            
+            QLabel {
+                color: #343a40;
+                font-size: 14px;
+            }
+            
+            QLineEdit {
+                background-color: #ffffff;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 14px;
+                color: #495057;
+            }
+            
+            QLineEdit:focus {
+                border: 1px solid #adb5bd;
+                background-color: #f1f3f5;
+            }
+            
+            QPushButton {
+                background-color: #6c757d;
+                color: #ffffff;
+                border: none;
+                border-radius: 4px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            
+            QPushButton:hover {
+                background-color: #5a6268;
+            }
+            
+            QPushButton:pressed {
+                background-color: #495056;
+            }
+            
+            QPushButton:flat {
+                background-color: transparent;
+                border: 1px solid #ced4da;
+                color: #495057;
+            }
+            
+            QSlider::groove:horizontal {
+                height: 6px;
+                background: #e9ecef;
+                border-radius: 3px;
+            }
+            
+            QSlider::handle:horizontal {
+                width: 14px;
+                height: 14px;
+                background: #6c757d;
+                border-radius: 7px;
+                margin: -4px 0;
+            }
+            
+            QCheckBox {
+                spacing: 8px;
+                color: #495057;
+                font-size: 14px;
+            }
+            
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border: 1px solid #adb5bd;
+                border-radius: 3px;
+                background: #ffffff;
+            }
+            
+            QCheckBox::indicator:checked {
+                background-color: #6c757d;
+                border: 1px solid #6c757d;
+            }
+            
+            QTextEdit, QPlainTextEdit {
+                background-color: #ffffff;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 8px;
+                font-size: 14px;
+                color: #495057;
+            }
+        """)

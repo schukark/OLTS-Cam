@@ -32,7 +32,7 @@ class LicenseDialog(QDialog):
         """
         super().__init__(parent)
         self.setWindowTitle("License Agreement")
-        self.setFixedSize(550, 800)
+        self.setFixedSize(600, 800)
 
         layout = QVBoxLayout()
 

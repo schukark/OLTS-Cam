@@ -47,7 +47,7 @@ class ModelThreadController(QObject):
         """Push settings to screen."""
         self.window.screens["camera"].load_settings()
         self.window.screens["model"].load_settings()
-
+        
     def push_to_db(self):
         """Push data to the database at regular intervals."""
         if hasattr(self.db_manager, 'connect_and_push'):
@@ -111,6 +111,9 @@ if __name__ == '__main__':
     # Initialize the application
     app = QApplication(sys.argv)
     window = ApplicationWindow()
+    
+    window.set_style()
+
     db_manager = DatabaseManager()
     
     # Create the model controller and connect its signals to the window

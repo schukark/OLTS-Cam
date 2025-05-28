@@ -11,65 +11,42 @@ from .dialogs.about_dialog import AboutDialog
 
 class HomeScreen:
     """
-    HomeScreen UI Module
-
-    This class sets up the home screen interface, which includes a logo, 
-    a welcome message, and buttons to display the license and about dialogs.
-
-    Attributes:
-        RESOURCES_PATH (Path): Path to the resources directory containing images and assets.
-        parent (QWidget): The parent widget that hosts this screen.
-        license_button (QPushButton): Button to trigger the license dialog.
-        about_button (QPushButton): Button to trigger the about dialog.
+    HomeScreen UI Module with muted color scheme
     """
 
     RESOURCES_PATH = Path(__file__).parent.parent.parent.parent / "resources"
     README_PATH = Path(__file__).parent.parent.parent.parent / "Readme.md"
 
     def __init__(self, parent):
-        """
-        Initializes the HomeScreen.
-
-        Args:
-            parent (QWidget): The parent widget in which the home screen is displayed.
-        """
         self.parent = parent
         self.setup_ui()
 
     def setup_ui(self):
-        """
-        Sets up the user interface layout.
-
-        This method clears any existing layout from the parent widget and creates
-        a new layout that includes:
-            - A logo image on the left side.
-            - A welcome message and buttons on the right side.
-            - Proper spacers to center and balance the layout visually.
-        """
-        # Clear the existing layout if any
+        # Clear existing layout
         if self.parent.layout():
             while self.parent.layout().count():
                 self.parent.layout().takeAt(0)
 
-        # Main container and layout
+        # Main container with soft background
         container = QWidget()
+        container.setStyleSheet("""
+            background-color: #f8f9fa;
+        """)
+        
         main_layout = QVBoxLayout(container)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setContentsMargins(40, 40, 40, 40)
 
         # Add top spacer
         main_layout.addSpacerItem(QSpacerItem(
             20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        # Horizontal layout for logo and right-side content
+        # Content layout
         content_layout = QHBoxLayout()
+        content_layout.setSpacing(40)
 
-        # Left side - Logo
+        # Logo section
         logo_label = QLabel()
-        logo_path = os.path.join(
-            self.RESOURCES_PATH,
-            "logo.jpg"
-        )
-        print(logo_path)
+        logo_path = os.path.join(self.RESOURCES_PATH, "logo.jpg")
         if os.path.exists(logo_path):
             logo_pixmap = QPixmap(logo_path)
             logo_pixmap = logo_pixmap.scaled(
@@ -78,60 +55,92 @@ class HomeScreen:
         else:
             logo_label.setText("Logo not found")
             logo_label.setAlignment(Qt.AlignCenter)
+            logo_label.setStyleSheet("""
+                font-size: 16px;
+                color: #495057;
+            """)
 
         logo_label.setAlignment(Qt.AlignCenter)
 
-        # Right side - Welcome text and buttons
+        # Right side content
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         right_layout.setAlignment(Qt.AlignCenter)
+        right_layout.setSpacing(20)
 
-        welcome_label = QLabel("Welcome to the application!")
+        welcome_label = QLabel("Welcome to the application")
         welcome_label.setAlignment(Qt.AlignCenter)
-        welcome_label.setStyleSheet("font-size: 24px; font-weight: bold;")
+        welcome_label.setStyleSheet("""
+            font-size: 24px; 
+            font-weight: 500;
+            color: #343a40;
+            margin-bottom: 30px;
+        """)
 
+        # Primary button (subtle blue)
         self.license_button = QPushButton("Show License")
         self.license_button.setFixedWidth(300)
-        self.license_button.setStyleSheet("font-size: 16px; padding: 10px;")
+        self.license_button.setFixedHeight(50)
+        self.license_button.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d;
+                color: #ffffff;
+                font-size: 15px;
+                font-weight: 500;
+                border: none;
+                border-radius: 4px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #5a6268;
+            }
+            QPushButton:pressed {
+                background-color: #495056;
+            }
+        """)
         self.license_button.clicked.connect(self.show_license_dialog)
 
+        # Secondary button (very subtle)
         self.about_button = QPushButton("About")
         self.about_button.setFixedWidth(300)
-        self.about_button.setStyleSheet("font-size: 16px; padding: 10px;")
+        self.about_button.setFixedHeight(50)
+        self.about_button.setStyleSheet("""
+            QPushButton {
+                background-color: #d3d8de; /* Более темный серый цвет */
+                color: #343a40; /* Более темный серый текст */
+                font-size: 15px;
+                font-weight: 500;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #b5bbbf; /* Более темный серый при наведении */
+                border-color: #a8b2bf;
+            }
+            QPushButton:pressed {
+                background-color: #9ea8ad; /* Более темный серый при нажатии */
+            }
+        """)
         self.about_button.clicked.connect(self.show_about_dialog)
 
-        right_layout.addWidget(welcome_label, alignment=Qt.AlignCenter)
-        right_layout.addSpacerItem(QSpacerItem(
-            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        right_layout.addWidget(welcome_label)
         right_layout.addWidget(self.license_button, alignment=Qt.AlignCenter)
-        right_layout.addSpacerItem(QSpacerItem(
-            20, 10, QSizePolicy.Minimum, QSizePolicy.Fixed))
         right_layout.addWidget(self.about_button, alignment=Qt.AlignCenter)
-        right_layout.addSpacerItem(QSpacerItem(
-            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        # Add left and right sections to the horizontal layout
         content_layout.addWidget(logo_label)
         content_layout.addWidget(right_widget)
 
-        # Add the horizontal layout to the main layout
         main_layout.addLayout(content_layout)
         main_layout.addSpacerItem(QSpacerItem(
             20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        # Set the layout to the parent widget
         self.parent.layout().addWidget(container)
 
     def show_license_dialog(self):
-        """
-        Displays the license dialog window.
-        """
         dialog = LicenseDialog(self.parent)
         dialog.exec()
 
     def show_about_dialog(self):
-        """
-        Displays the about dialog with contents from Readme.md.
-        """
         dialog = AboutDialog(self.parent, self.README_PATH)
         dialog.exec()

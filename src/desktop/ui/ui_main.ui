@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1588</width>
+    <width>1600</width>
     <height>900</height>
    </rect>
   </property>
@@ -51,7 +51,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="homePage">
        <layout class="QVBoxLayout" name="verticalLayout_2"/>
@@ -276,7 +276,7 @@
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>40</height>
+            <height>50</height>
            </size>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
