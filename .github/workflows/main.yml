@@ -7,49 +7,42 @@ on:
 
 jobs:
   build-and-deploy-docs:
-    name: Build and Deploy Docs
     runs-on: ubuntu-latest
+    # добавляем src/ в PYTHONPATH для всех шагов
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
 
     steps:
-      # 1) Клонируем ваш репозиторий
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0    # нужно, чтобы была полная история для gh-pages
+          fetch-depth: 0
 
-      # 2) Устанавливаем нужную версию Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # 3) Устанавливаем зависимости проекта
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # 4) Устанавливаем генератор docs (pdoc)
       - name: Install pdoc3
         run: pip install pdoc3
 
-      # 5) Генерируем HTML-документацию
       - name: Generate docs with pdoc
         run: |
-          # очищаем старую директорию
           rm -rf docs
-          # генерируем docs из папки src
+          # теперь pdoc видит все ваши пакеты, 
+          # т.к. src/ уже в PYTHONPATH
           pdoc --html src --output-dir docs --force
-          # по умолчанию pdoc создаёт subfolder с именем пакета,  
-          # если вы хотите документы прямо в корне docs,  
-          # можете скопировать index.html и assets на уровень выше
 
-      # 6) Деплоим на ветку gh-pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          publish_dir: docs
           publish_branch: gh-pages
           user_name: github-actions[bot]
           user_email: github-actions[bot]@users.noreply.github.com
