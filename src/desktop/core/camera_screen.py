@@ -84,7 +84,8 @@ class CameraScreen(QObject):
                 'ip': self.ui.cameraIPInput.text().strip(),
                 'port': self.ui.cameraPortInput.text().strip(),
                 'login': self.ui.cameraLoginInput.text().strip(),
-                'password': self.ui.cameraPasswordInput.text().strip()
+                'password': self.ui.cameraPasswordInput.text().strip(),
+                'rtsp_url': self.ui.rtspUrlInput.text().strip()
             }
             
             updated_fields = self.validator.update_rtsp_from_fields(fields)

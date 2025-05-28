@@ -104,11 +104,11 @@ class CameraSettingsValidator:
 
     def update_rtsp_from_fields(self, fields: Dict[str, str]) -> Dict[str, str]:
         """
-        Generates RTSP URL from individual field values.
+        Generates RTSP URL from individual field values while preserving the existing path.
 
         Args:
             fields: Dictionary containing camera settings fields:
-                   {'ip': str, 'port': str, 'login': str, 'password': str}
+                {'ip': str, 'port': str, 'login': str, 'password': str, 'rtsp_url': str}
 
         Returns:
             Dictionary with updated 'rtsp_url' field
@@ -117,6 +117,17 @@ class CameraSettingsValidator:
         port = fields.get('port', '').strip()
         login = fields.get('login', '').strip()
         password = fields.get('password', '').strip()
+        current_url = fields.get('rtsp_url', '').strip()
+
+        # Extract existing path from current URL if it exists
+        path = "/stream"  # default path
+        if current_url:
+            path_match = re.search(r'^rtsp://[^/]+(/.+)$', current_url)
+            if path_match:
+                path = path_match.group(1)
+                # Ensure path starts with /
+                if not path.startswith('/'):
+                    path = '/' + path
 
         rtsp_url = ""
         if ip:
@@ -130,7 +141,7 @@ class CameraSettingsValidator:
             if port:
                 rtsp_url += f":{port}"
             
-            rtsp_url += "/stream"
+            rtsp_url += path
 
         return {**fields, 'rtsp_url': rtsp_url}
 

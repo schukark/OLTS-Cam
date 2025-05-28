@@ -124,9 +124,8 @@ class ModelScreen:
             str(Path.home()),
             QFileDialog.ShowDirsOnly
         )
-        if folder:
-            self.folder_update = True
-            self.ui.saveFolderInput.setText(folder)
+        self.folder_update = True
+        self.ui.saveFolderInput.setText(folder)
 
     def get_all_settings(self) -> Dict:
         """
@@ -148,7 +147,8 @@ class ModelScreen:
         return self.ui.videoObjectCount.hasFocus() or \
             self.ui.fpsInput.hasFocus() or  \
             self.ui.horizontalSlider.hasFocus() or  \
-            self.folder_update
+            self.folder_update or \
+            self.ui.token.hasFocus()
 
     def set_all_settings(self, settings: Dict):
         """
@@ -157,14 +157,16 @@ class ModelScreen:
         Args:
             settings (Dict): A dictionary of settings to apply.
         """
-        self.ui.token.setText(settings.get('telegram_token', ''))
         
+        # Не обновлять поля, если они в фокусе или была изменена папка
         if not self.is_focus():
             try:
                 self.ui.videoObjectCount.blockSignals(True)
                 self.ui.fpsInput.blockSignals(True)
                 self.ui.horizontalSlider.blockSignals(True)
+                self.ui.token.blockSignals(True)
                 
+                self.ui.token.setText(settings.get('telegram_token', ''))
                 self.ui.videoObjectCount.setText(settings.get('object_count', ''))
                 self.ui.fpsInput.setText(settings.get('fps', ''))
                 threshold = settings.get('threshold', '0.5')
@@ -179,6 +181,7 @@ class ModelScreen:
                 self.ui.videoObjectCount.blockSignals(False)
                 self.ui.fpsInput.blockSignals(False)
                 self.ui.horizontalSlider.blockSignals(False)
+                self.ui.token.blockSignals(False)
 
     def clear_highlight(self):
         """
