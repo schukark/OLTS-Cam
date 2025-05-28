@@ -1,4 +1,7 @@
-name: Generate and Deploy Documentation
+# .github/workflows/main.yml
+# CI/CD pipeline для Python + Rust проекта
+
+name: CI
 
 on:
   push:
@@ -7,38 +10,65 @@ on:
     branches: [ main ]
 
 jobs:
-  build-docs:
+  build-and-test:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - uses: actions/checkout@v3
+    # 1. Получить исходники
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
+    # 2. Установить Python
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: "3.11"
 
-    - name: Install dependencies
+    # 3. Установить Rust
+    - name: Set up Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    # 4. Кэшировать зависимости pip
+    - name: Cache pip
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    # 5. Установить Python зависимости
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pdoc3
 
-    - name: Generate documentation
+    # 6. Собрать Rust код (если требуется)
+    - name: Build Rust code
+      run: cargo build --verbose
+
+    # 7. Прогнать Rust тесты (если есть)
+    - name: Run Rust tests
+      run: cargo test
+
+    # 8. Проверить Python синтаксис
+    - name: Lint Python code (flake8)
       run: |
-        # Устанавливаем PYTHONPATH для корректных импортов
-        export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
-        # Устанавливаем пакет в development mode
-        pip install -e .
-        # Генерируем документацию
-        pdoc --html -o ./docs src --force
-        # Перемещаем документацию в корень docs для GitHub Pages
-        mv ./docs/src/* ./docs/
-        rm -r ./docs/src
+        pip install flake8
+        flake8 src/
 
-    - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
+    # 9. Запуск Python-тестов (если есть тесты)
+    - name: Run Python tests (pytest)
+      run: |
+        pip install pytest
+        pytest src/
+      # Если нет автотестов, можно этот шаг убрать или изменить
+
+    # 10. Демо: Проверить структуру файлов
+    - name: List project files
+      run: ls -R
+
+# Конец файла
