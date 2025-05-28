@@ -15,6 +15,8 @@ jobs:
 
     env:
       PYTHONPATH: ${{ github.workspace }}/src
+      QT_DEBUG_PLUGINS: 0  # Отключаем debug-логирование Qt
+      QT_QPA_PLATFORM: offscreen  # Используем offscreen-режим для Qt
 
     steps:
       - name: Checkout code
@@ -38,24 +40,25 @@ jobs:
             libxcb-keysyms1 \
             libxcb-render0 \
             libxcb-render-util0 \
-            libxcb-xinerama0
+            libxcb-xinerama0 \
+            libgl1  # Дополнительные зависимости для headless-режима
 
       - name: Install Python deps
         run: |
           pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pdoc3
+          pip install pdoc3 PySide6
 
-      - name: Generate docs
+      - name: Generate docs with Qt workaround
         run: |
           rm -rf docs
-          # Переходим в папку src и генерируем документацию только для нее
-          cd src && pdoc \
-            --html \
-            --force \
-            --skip-errors \
-            -o ../docs \
-            .
+          # Создаем временный скрипт для обхода проблем с Qt
+          echo 'import sys
+          from pdoc import cli
+          sys.argv = ["pdoc", "--html", "--force", "--skip-errors", "-o", "../docs", "."]
+          sys.exit(cli.main())' > generate_docs.py
+          
+          cd src && python ../generate_docs.py
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
