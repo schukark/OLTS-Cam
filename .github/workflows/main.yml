@@ -1,17 +1,8 @@
 
 # .github/workflows/main.yml
-# CI workflow для Python-проекта
-#
-# Этот workflow автоматически проверяет ваш код после
-# каждого push или pull request в ветку main.
-# Выполняет:
-#    - установку зависимостей
-#    - проверку стиля кода (flake8)
-#    - запуск unittests (pytest)
-#
-# Структура и команды можно скорректировать под особенности проекта.
+# Github Actions workflow для автоматической генерации документации Sphinx
 
-name: Python CI
+name: Build Docs
 
 on:
   push:
@@ -20,49 +11,24 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  docs:
     runs-on: ubuntu-latest
-
     steps:
-    # Клонируем репозиторий
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    # Устанавливаем Python (укажите версию под ваш проект)
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    # Кэшируем pip-зависимости (ускоряет workflow)
-    - name: Cache pip
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      - name: Install documentation requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install sphinx
+          # Если есть requirements.txt для доки:
+          # pip install -r docs/requirements.txt
 
-    # Обновляем pip и ставим зависимости из requirements.txt
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    # Проверяем стиль и ошибки в Python-коде (flake8)
-    - name: Lint code with flake8
-      run: |
-        pip install flake8
-        # Проверяем только ваш src/ каталог
-        flake8 src/
-
-    # Запускаем все Python-тесты (pytest)
-    # Если тестов нет, этот шаг можно убрать или заменить
-    - name: Run tests with pytest
-      run: |
-        pip install pytest
-        pytest src/
-
-    # Для наглядности - покажем структуру файлов после сборки
-    - name: List project files (отладочно)
-      run: ls -R
+      - name: Build Sphinx docs
+        run: |
+          cd docs
+          make html
