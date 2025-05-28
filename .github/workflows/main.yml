@@ -1,6 +1,10 @@
 
 name: Generate & Deploy Python Docs
 
+permissions:
+  contents: read
+  pages: write
+
 on:
   push:
     branches:
