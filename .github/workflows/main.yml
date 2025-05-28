@@ -2,7 +2,7 @@
 name: Generate & Deploy Python Docs
 
 permissions:
-  contents: read
+  contents: write
   pages: write
 
 on:
