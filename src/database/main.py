@@ -1,4 +1,4 @@
-from DatabaseManager import DatabaseManager
+from .DatabaseManager import DatabaseManager
 
 
 def create_database():
