@@ -2,7 +2,7 @@ name: Rust
 
 on:
   push:
-    branches: ["telegram-bot"]
+    branches: ["telegram-bot", "main"]
   pull_request:
     branches: ["telegram-bot"]
 
@@ -153,19 +153,19 @@ jobs:
       - name: Build docs
         run: cargo doc --workspace --no-deps
       - name: Disable Jekyll
-        run: touch target/doc/.nojekyll
+        run: touch target/doc/bot/.nojekyll
       - name: Add redirect
-        run: echo '<meta http-equiv="refresh" content="0;url=camera_detection_bot/index.html">' > target/doc/index.html
+        run: echo '<meta http-equiv="refresh" content="0;url=camera_detection_bot/index.html">' > target/doc/bot/index.html
       - name: Remove lock file
         run: rm target/doc/.lock
       - name: Debug docs output
         run: |
           echo "Contents of target/doc:"
-          ls -R target/doc || echo "No docs found, continuing..."
+          ls -R target/doc/bot || echo "No docs found, continuing..."
       - name: Upload docs artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: target/doc/
+          path: target/doc/bot/
 
   deploy:
     name: Deploy Pages
