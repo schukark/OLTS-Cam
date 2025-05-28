@@ -1,9 +1,9 @@
 """License Dialog Module
 
-Provides a Qt-based dialog window to display license agreement text from a file.
+Provides a Qt-based dialog window to display license agreement text from files.
 
 Classes:
-    LicenseDialog -- A dialog window displaying license text loaded from a specified file.
+    LicenseDialog -- A dialog window displaying license text loaded from LICENSE and LICENSE.PySide6 files.
 """
 
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QTextEdit,
@@ -13,14 +13,15 @@ import os
 
 
 class LicenseDialog(QDialog):
-    """A dialog window displaying a license agreement text.
+    """A dialog window displaying license agreement texts.
 
-    This dialog displays the contents of a license file (e.g., 'license.txt') in a read-only text field,
-    along with a close button. The window has a fixed size of 600x400 pixels.
+    This dialog displays the combined contents of 'LICENSE' and 'LICENSE.PySide6' files
+    in a read-only text field, with several newlines between them, along with a close button.
+    The window has a fixed size of 600x400 pixels.
 
     Methods:
         __init__ -- Initializes the LicenseDialog window, setting up the UI components.
-        load_license -- Loads the license text from the specified file.
+        load_license -- Loads and combines license texts from both files.
     """
     
     def __init__(self, parent=None):
@@ -31,7 +32,7 @@ class LicenseDialog(QDialog):
         """
         super().__init__(parent)
         self.setWindowTitle("License Agreement")
-        self.setFixedSize(600, 400)
+        self.setFixedSize(550, 800)
 
         layout = QVBoxLayout()
 
@@ -54,25 +55,34 @@ class LicenseDialog(QDialog):
         self.setLayout(layout)
 
     def load_license(self):
-        """Load license text from the specified file.
+        """Load and combine license texts from both files.
 
-        This function attempts to read the contents of a license text file (e.g., 'license.txt') from
-        the current working directory.
+        This function attempts to read the contents of both 'LICENSE' and 'LICENSE.PySide6' files
+        from the current working directory and combines them with several newlines in between.
 
         Returns:
-            str: The contents of the license file.
+            str: The combined contents of both license files separated by newlines.
 
         Raises:
-            FileNotFoundError: If the license file does not exist in the specified location.
-            IOError: If there are issues reading the file.
+            FileNotFoundError: If either license file is not found.
+            IOError: If there are issues reading the files.
         """
-        license_path = os.path.join(os.getcwd(), "license.txt")
+        license_path = os.path.join(os.getcwd(), "LICENSE")
+        pyside_license_path = os.path.join(os.getcwd(), "LICENSE.PySide6")
 
+        # Check if both files exist
         if not os.path.exists(license_path):
-            raise FileNotFoundError(f"License file not found: {license_path}")
+            raise FileNotFoundError(f"Main license file not found: {license_path}")
+        if not os.path.exists(pyside_license_path):
+            raise FileNotFoundError(f"PySide6 license file not found: {pyside_license_path}")
 
         try:
             with open(license_path, 'r', encoding='utf-8') as f:
-                return f.read()
+                main_license = f.read()
+            with open(pyside_license_path, 'r', encoding='utf-8') as f:
+                pyside_license = f.read()
+            
+            # Combine licenses with 5 newlines in between
+            return f"{main_license}\n\n\n\n\n{pyside_license}"
         except IOError as e:
-            raise IOError(f"Error reading the license file: {e}")
+            raise IOError(f"Error reading license files: {e}")
