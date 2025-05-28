@@ -29,6 +29,10 @@ def show_boxes(names: list[str],
     """
     coord_list = []
 
+
+    print(names)
+    print(photo_paths)
+    print(position_coords)
     # Parse the bounding box coordinates from the position_coords list
     for position_coord in position_coords:
         coords = position_coord.split(",")
@@ -49,6 +53,7 @@ def show_boxes(names: list[str],
         coord_list.append(coords_num)
 
     # Read the first image from the given paths
+    print(photo_paths[0])
     image = cv2.imread(photo_paths[0])
     if image is None:
         raise FileNotFoundError(f"Could not load the image at {photo_paths[0]}")
