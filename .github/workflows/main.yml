@@ -1,47 +1,38 @@
-name: Generate Python Documentation
+name: Generate and Deploy Documentation
 
 on:
   push:
-    branches: [ main, master ]
-    paths:
-      - 'src/**/*.py'
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
-    paths:
-      - 'src/**/*.py'
-  workflow_dispatch:  # Позволяет запускать workflow вручную
+    branches: [ main ]
 
 jobs:
   build-docs:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
-        
+        python-version: '3.9'
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pdoc3  # Можно заменить на pdoc если предпочитаете новую версию
-        # Установите зависимости вашего проекта, если они нужны для импорта модулей
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        
+        pip install pdoc
+
     - name: Generate documentation
       run: |
-        mkdir -p docs
-        pdoc --html --output-dir docs src
-        
-    - name: Deploy documentation to GitHub Pages
+        pdoc --html --output-dir ./docs src --force
+        # Перемещаем документацию в корень docs для GitHub Pages
+        mv ./docs/src/* ./docs/
+        rm -r ./docs/src
+
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/src
-        force_orphan: true
-        enable_jekyll: false
+        publish_dir: ./docs
