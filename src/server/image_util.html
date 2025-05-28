@@ -42,111 +42,6 @@ el.replaceWith(d);
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="src.server.image_util.show_boxes"><code class="name flex">
-<span>def <span class="ident">show_boxes</span></span>(<span>names: list[str], photo_paths: list[str], position_coords: list[str]) ‑> <a title="src.server.models.ObjectPhoto" href="models.html#src.server.models.ObjectPhoto">ObjectPhoto</a></span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def show_boxes(names: list[str],
-               photo_paths: list[str],
-               position_coords: list[str]) -&gt; ObjectPhoto:
-    &#34;&#34;&#34;
-    This function reads an image, draws bounding boxes based on provided coordinates, 
-    and returns the image as a base64-encoded JPEG. The function assumes that the coordinates
-    are provided in the format: &#39;x_min,y_min,x_max,y_max&#39;.
-
-    Args:
-        names (list[str]): A list of labels to assign to each bounding box.
-        photo_paths (list[str]): A list of file paths to the images where bounding boxes are to be drawn.
-        position_coords (list[str]): A list of bounding box coordinates in the format &#39;x_min,y_min,x_max,y_max&#39;.
-
-    Returns:
-        ObjectPhoto: An ObjectPhoto instance containing the height, width, and base64-encoded image.
-        
-    Raises:
-        ValueError: If there is an issue with parsing the coordinates.
-    &#34;&#34;&#34;
-    coord_list = []
-
-    # Parse the bounding box coordinates from the position_coords list
-    for position_coord in position_coords:
-        coords = position_coord.split(&#34;,&#34;)
-
-        # Ensure that there are exactly 4 coordinates
-        if len(coords) != 4:
-            raise ValueError(&#34;There should be exactly 4 coordinates for each bounding box.&#34;)
-
-        coords_num = []
-
-        # Attempt to convert each coordinate to a float
-        for i in coords:
-            try:
-                coords_num.append(float(i))
-            except ValueError as e:
-                raise ValueError(f&#34;There was an error parsing coordinates: {e}&#34;)
-
-        coord_list.append(coords_num)
-
-    # Read the first image from the given paths
-    image = cv2.imread(photo_paths[0])
-    if image is None:
-        raise FileNotFoundError(f&#34;Could not load the image at {photo_paths[0]}&#34;)
-
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    h, w, _ = image.shape
-
-    # Convert the image to a tensor and draw bounding boxes
-    image_tensor = torch.from_numpy(image).permute(2, 0, 1).float()  # Convert to float tensor
-    boxes_tensor = torch.tensor(coord_list)
-
-    # Draw bounding boxes on the image tensor
-    boxed_img = draw_bounding_boxes(image_tensor, 
-                                    boxes=boxes_tensor, 
-                                    labels=names, 
-                                    colors=&#34;red&#34;, 
-                                    width=4, 
-                                    font_size=30)
-
-    # Convert the result back to a PIL image
-    image = to_pil_image(boxed_img, mode=&#34;RGB&#34;)
-
-    # Convert the PIL image to a base64-encoded string
-    buffered = BytesIO()
-    image.save(buffered, format=&#34;JPEG&#34;)
-    img_str = base64.b64encode(buffered.getvalue())
-
-    # Return an ObjectPhoto instance containing the height, width, and the base64 image
-    return ObjectPhoto(height=h, width=w, image=img_str)</code></pre>
-</details>
-<div class="desc"><p>This function reads an image, draws bounding boxes based on provided coordinates,
-and returns the image as a base64-encoded JPEG. The function assumes that the coordinates
-are provided in the format: 'x_min,y_min,x_max,y_max'.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>names</code></strong> :&ensp;<code>list[str]</code></dt>
-<dd>A list of labels to assign to each bounding box.</dd>
-<dt><strong><code>photo_paths</code></strong> :&ensp;<code>list[str]</code></dt>
-<dd>A list of file paths to the images where bounding boxes are to be drawn.</dd>
-<dt><strong><code>position_coords</code></strong> :&ensp;<code>list[str]</code></dt>
-<dd>A list of bounding box coordinates in the format 'x_min,y_min,x_max,y_max'.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>ObjectPhoto</code></dt>
-<dd>An ObjectPhoto instance containing the height, width, and base64-encoded image.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>ValueError</code></dt>
-<dd>If there is an issue with parsing the coordinates.</dd>
-</dl></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
@@ -159,11 +54,6 @@ are provided in the format: 'x_min,y_min,x_max,y_max'.</p>
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="src.server" href="index.html">src.server</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="src.server.image_util.show_boxes" href="#src.server.image_util.show_boxes">show_boxes</a></code></li>
 </ul>
 </li>
 </ul>
