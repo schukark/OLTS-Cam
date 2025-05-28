@@ -21,11 +21,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pdoc
+        pip install pdoc3
 
     - name: Generate documentation
       run: |
-        pdoc --html --output-dir ./docs src --force
+        pdoc --html -o ./docs src --force
         # Перемещаем документацию в корень docs для GitHub Pages
         mv ./docs/src/* ./docs/
         rm -r ./docs/src
