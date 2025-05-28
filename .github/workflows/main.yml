@@ -3,12 +3,12 @@ name: Generate & Deploy Python Docs
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build-and-deploy-docs:
     runs-on: ubuntu-latest
-    # добавляем src/ в PYTHONPATH для всех шагов
     env:
       PYTHONPATH: ${{ github.workspace }}/src
 
@@ -23,20 +23,40 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install system dependencies for PySide6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libegl1-mesa \
+            libgl1-mesa-glx \
+            libxkbcommon-x11-0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0 \
+            libxcb-xinerama0
+
+      - name: Install Python dependencies
         run: |
           pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-      - name: Install pdoc3
-        run: pip install pdoc3
+          pip install pdoc3
 
       - name: Generate docs with pdoc
         run: |
           rm -rf docs
-          # теперь pdoc видит все ваши пакеты, 
-          # т.к. src/ уже в PYTHONPATH
-          pdoc --html src --output-dir docs --force
+          pdoc \
+            --html \
+            --skip-errors \
+            --module-dir src \
+            bot \
+            database \
+            server \
+            model \
+            desktop \
+            utils \
+            --output-dir docs \
+            --force
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
