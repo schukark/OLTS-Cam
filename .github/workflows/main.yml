@@ -26,6 +26,8 @@ jobs:
 
     - name: Generate documentation
       run: |
+        # Добавляем src в PYTHONPATH для корректного импорта модулей
+        export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
         pdoc --html -o ./docs src --force
         # Перемещаем документацию в корень docs для GitHub Pages
         mv ./docs/src/* ./docs/
