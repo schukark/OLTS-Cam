@@ -28,8 +28,8 @@
 
 |                   -march |                              md5 |
 | ------------------------ | -------------------------------- |
-| x86_64-unknown-linux-gnu | 815b97f4759375c8c770648c037936af |
-|    x86_64-pc-windows-gnu | c7394cc4845118f4c1a49bea6060e262 |
+| x86_64-unknown-linux-gnu | 45d5e9b4977174c19a39e4e431ef1d60 |
+|    x86_64-pc-windows-gnu | e7185d58f7323d231b86b4439d448325 |
 
 ## Запуск
 
