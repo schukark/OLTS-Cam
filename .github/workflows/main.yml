@@ -9,21 +9,22 @@ on:
 jobs:
   build-and-deploy-docs:
     runs-on: ubuntu-latest
+
+    # делаем так, чтобы при import server, import database и т.п.
+    # питон искал модули в папке src
     env:
       PYTHONPATH: ${{ github.workspace }}/src
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install system dependencies for PySide6
+      - name: Install system deps for PySide6
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -38,27 +39,26 @@ jobs:
             libxcb-render-util0 \
             libxcb-xinerama0
 
-      - name: Install Python dependencies
+      - name: Install Python deps
         run: |
           pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install pdoc3
 
-      - name: Generate docs with pdoc
+      - name: Generate docs
         run: |
           rm -rf docs
           pdoc \
             --html \
+            --force \
             --skip-errors \
-            --module-dir src \
+            -o docs \
             bot \
             database \
             server \
             model \
             desktop \
-            utils \
-            --output-dir docs \
-            --force
+            utils
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -67,4 +67,3 @@ jobs:
           publish_dir: docs
           publish_branch: gh-pages
           user_name: github-actions[bot]
-          user_email: github-actions[bot]@users.noreply.github.com
