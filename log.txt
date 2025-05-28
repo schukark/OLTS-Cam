@@ -1,0 +1,27 @@
+[2025-05-29 01:58:17.074 INFO src/bot/bot.rs:212] Starting the bot...
+[2025-05-29 01:58:26.592 INFO src/bot/bot.rs:57] Asked for list of all the commands
+[2025-05-29 01:58:29.937 INFO src/bot/bot.rs:63] Asked for the current state
+[2025-05-29 01:58:33.800 INFO src/bot/bot.rs:87] Asked where an object bed is
+[2025-05-29 01:58:53.835 INFO src/bot/bot.rs:111] Asked for settings
+[2025-05-29 01:59:41.423 INFO src/bot/bot.rs:111] Asked for settings
+[2025-05-29 01:59:45.411 INFO src/bot/bot.rs:87] Asked where an object bed is
+[2025-05-29 01:59:52.615 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:00:20.999 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:01:15.635 INFO src/bot/bot.rs:57] Asked for list of all the commands
+[2025-05-29 02:01:21.839 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:01:30.562 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:01:44.468 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:02:15.471 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:02:29.647 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:04:14.997 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:04:37.335 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:05:24.774 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:05:56.741 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:06:27.155 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:06:52.215 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:07:02.468 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:07:15.237 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:07:32.070 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:07:44.140 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:07:51.732 INFO src/bot/bot.rs:148] Asked to change the settings
+[2025-05-29 02:07:57.911 INFO src/bot/bot.rs:148] Asked to change the settings

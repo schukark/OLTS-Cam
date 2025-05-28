@@ -162,6 +162,9 @@ async def change_settings(new_settings: Settings, response: Response):
         validator = ModelSettingsValidator()
         
     fields = {}
+    
+    for key, value in cur_settings.items():
+        fields[key] = value
 
     for new_setting_pair in new_settings.settings:
         if new_setting_pair.key not in name_set:
@@ -170,14 +173,14 @@ async def change_settings(new_settings: Settings, response: Response):
             response.status_code = 422
             return None
         bar = getattr(validator, f'validate_{new_setting_pair.key}')
-        valid_count, _ = bar(new_setting_pair.value)
+        valid_count, err = bar(new_setting_pair.value)
         
         if not valid_count:
+            logging.debug(f"Error while validating settings: {err}")
             response.status_code = 421
             return None
         
         cur_settings[new_setting_pair.key] = new_setting_pair.value
-        fields[new_setting_pair.key] = new_setting_pair.value
 
         logging.debug(
             f"Changed setting {new_setting_pair.key} \
