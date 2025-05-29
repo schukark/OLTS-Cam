@@ -155,7 +155,7 @@ jobs:
       - name: Disable Jekyll
         run: touch target/doc/bot/.nojekyll
       - name: Add redirect
-        run: echo '<meta http-equiv="refresh" content="0;url=bot">' > target/doc/bot/index.html
+        run: echo '<meta http-equiv="refresh" content="0;url=bot/index.html">' > target/doc/bot/index.html
       - name: Remove lock file
         run: rm target/doc/.lock
       - name: Debug docs output
