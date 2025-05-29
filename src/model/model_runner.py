@@ -70,6 +70,7 @@ class ModelRunner:
 
         try:
             self.capture = cv2.VideoCapture(self.settings["rtsp_url"], cv2.CAP_FFMPEG)
+            
             if self.capture.isOpened():
                 self.capture.set(cv2.CAP_PROP_FPS, self.settings["fps"])
                 self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)

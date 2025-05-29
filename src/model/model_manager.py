@@ -100,6 +100,7 @@ class ModelManager:
 
         runner = None
         error = None
+        thread_completed = threading.Event()  # Событие для отслеживания завершения потока
 
         def target():
             nonlocal runner, error
@@ -111,17 +112,24 @@ class ModelManager:
                     runner = None
             except Exception as e:
                 error = f"Model initialization error: {str(e)}"
+            finally:
+                thread_completed.set()  # Уведомляем о завершении потока
 
         thread = threading.Thread(target=target)
         thread.daemon = True
         thread.start()
-        thread.join(timeout=5)
+        thread.join(timeout=5)  # Ждем не более 5 секунд
 
-        if thread.is_alive():
+        if not thread_completed.is_set():  # Если поток не завершился за 5 секунд
+            # Принудительно завершаем поток (не рекомендуется, но в данном случае необходимо)
+            # Альтернатива - установить флаг, который поток будет проверять
             self.reconnect = True
             error = "Camera connection timed out (5 seconds)"
+            
+            # Если runner был частично создан, освобождаем ресурсы
             if runner is not None:
                 runner.release()
+            
             return None, error
 
         if runner is None and error is None:

@@ -33,6 +33,7 @@ class ModelThreadController(QObject):
         self.db_manager = db_manager
         self.model_manager = ModelManager()
         self._running = True
+        self._last_error_time = None  # Track when error first appeared
 
         # Timer to periodically call the push_to_db method
         self.push_timer = QTimer()
@@ -71,21 +72,22 @@ class ModelThreadController(QObject):
             while self._running and self.app.instance() is not None:
                 start_time = time()
 
-                # Check for updated settings
-                current_time = time()
-                if current_time - last_settings_check >= settings_check_interval:
-                    current_settings_hash = self.model_manager.check_settings_hash()
-                    if (current_settings_hash != self.model_manager._current_settings_hash or
-                            self.model_manager.reconnect):
-                        self.model_manager.update_settings()
-                        if self.model_manager._current_runner:
-                            target_fps = self.model_manager._current_runner.settings["fps"]
-                    last_settings_check = current_time
-
                 # Process frame and send to database
                 self.model_manager.write_to_db(self.db_manager)
                 frame, boxes = self.model_manager.get_images()
                 error_message = self.model_manager.get_error()
+
+                # Handle error message persistence
+                if error_message:
+                    current_time = time()
+                    if self._last_error_time is None:
+                        self._last_error_time = current_time
+                    elif current_time - self._last_error_time >= 1.0:  # 1 second has passed with error
+                        root_logger.info("Error persisted for 1 second, updating settings...")
+                        self.model_manager.update_settings()
+                        self._last_error_time = None  # Reset after update
+                else:
+                    self._last_error_time = None  # Reset if no error
 
                 # Send signal with frame data to main thread
                 self.update_signal.emit(frame, boxes, error_message)
