@@ -125,7 +125,8 @@ class ModelScreen:
             QFileDialog.ShowDirsOnly
         )
         self.folder_update = True
-        self.ui.saveFolderInput.setText(folder)
+        if folder:
+            self.ui.saveFolderInput.setText(folder)
 
     def get_all_settings(self) -> Dict:
         """
@@ -171,12 +172,12 @@ class ModelScreen:
                 self.ui.fpsInput.setText(settings.get('fps', ''))
                 threshold = settings.get('threshold', '0.5')
                 self.ui.objectThresholdInput.setText(threshold)
+                self.ui.saveFolderInput.setText(settings.get('save_folder', ''))
                 try:
                     slider_value = int(float(threshold) * 100)
                     self.ui.horizontalSlider.setValue(slider_value)
                 except ValueError:
                     self.ui.horizontalSlider.setValue(50)  # Default to 0.5
-                self.ui.saveFolderInput.setText(settings.get('save_folder', ''))
             finally:
                 self.ui.videoObjectCount.blockSignals(False)
                 self.ui.fpsInput.blockSignals(False)
