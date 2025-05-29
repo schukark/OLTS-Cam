@@ -1,85 +1,66 @@
 import base64
 from io import BytesIO
 import cv2
-
 import torch
 from torchvision.utils import draw_bounding_boxes
 from torchvision.transforms.functional import to_pil_image
 from .models import ObjectPhoto
 
-
-def show_boxes(names: list[str],
-               photo_paths: list[str],
-               position_coords: list[str]) -> ObjectPhoto:
+def show_boxes(
+    names: list[str],
+    photo_paths: list[str],
+    position_coords: list[str],
+    output_path: str = "image.jpg"
+) -> ObjectPhoto:
     """
-    This function reads an image, draws bounding boxes based on provided coordinates, 
-    and returns the image as a base64-encoded JPEG. The function assumes that the coordinates
-    are provided in the format: 'x_min,y_min,x_max,y_max'.
+    Рисует bounding boxes на изображении, сохраняет результат в файл и возвращает ObjectPhoto.
 
     Args:
-        names (list[str]): A list of labels to assign to each bounding box.
-        photo_paths (list[str]): A list of file paths to the images where bounding boxes are to be drawn.
-        position_coords (list[str]): A list of bounding box coordinates in the format 'x_min,y_min,x_max,y_max'.
+        names: Список меток для bounding boxes.
+        photo_paths: Список путей к изображениям.
+        position_coords: Координаты в формате 'x_min,y_min,x_max,y_max'.
+        output_path: Путь для сохранения результата (по умолчанию 'image.jpg').
 
     Returns:
-        ObjectPhoto: An ObjectPhoto instance containing the height, width, and base64-encoded image.
-        
-    Raises:
-        ValueError: If there is an issue with parsing the coordinates.
+        ObjectPhoto: Объект с высотой, шириной и base64-изображением.
     """
+
     coord_list = []
-
-
-    print(names)
-    print(photo_paths)
-    print(position_coords)
-    # Parse the bounding box coordinates from the position_coords list
     for position_coord in position_coords:
         coords = position_coord.split(",")
-
-        # Ensure that there are exactly 4 coordinates
         if len(coords) != 4:
-            raise ValueError("There should be exactly 4 coordinates for each bounding box.")
+            raise ValueError("Координаты должны быть в формате 'x_min,y_min,x_max,y_max'.")
+        coord_list.append([float(x) for x in coords])
 
-        coords_num = []
-
-        # Attempt to convert each coordinate to a float
-        for i in coords:
-            try:
-                coords_num.append(float(i))
-            except ValueError as e:
-                raise ValueError(f"There was an error parsing coordinates: {e}")
-
-        coord_list.append(coords_num)
-
-    # Read the first image from the given paths
-    print(photo_paths[0])
     image = cv2.imread(photo_paths[0])
     if image is None:
-        raise FileNotFoundError(f"Could not load the image at {photo_paths[0]}")
-
+        raise FileNotFoundError(f"Изображение не найдено: {photo_paths[0]}")
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     h, w, _ = image.shape
 
-    # Convert the image to a tensor and draw bounding boxes
-    image_tensor = torch.from_numpy(image).permute(2, 0, 1).float()  # Convert to float tensor
-    boxes_tensor = torch.tensor(coord_list)
+    for box in coord_list:
+        x_min, y_min, x_max, y_max = box
+        assert 0 <= x_min < x_max <= w, f"Некорректные X-координаты: {box}"
+        assert 0 <= y_min < y_max <= h, f"Некорректные Y-координаты: {box}"
 
-    # Draw bounding boxes on the image tensor
-    boxed_img = draw_bounding_boxes(image_tensor, 
-                                    boxes=boxes_tensor, 
-                                    labels=names, 
-                                    colors="red", 
-                                    width=4, 
-                                    font_size=30)
 
-    # Convert the result back to a PIL image
-    image = to_pil_image(boxed_img, mode="RGB")
+    image_tensor = torch.from_numpy(image).permute(2, 0, 1).contiguous()
+    boxes_tensor = torch.tensor(coord_list, dtype=torch.float32)
 
-    # Convert the PIL image to a base64-encoded string
+    boxed_img = draw_bounding_boxes(
+        image_tensor,
+        boxes=boxes_tensor,
+        labels=names,
+        colors="red",
+        width=4,
+        font_size=20
+    )
+
+    boxed_img_pil = to_pil_image(boxed_img)
+    boxed_img_pil.save(output_path)
+
     buffered = BytesIO()
-    image.save(buffered, format="JPEG")
+    boxed_img_pil.save(buffered, format="JPEG")
     img_str = base64.b64encode(buffered.getvalue())
 
-    # Return an ObjectPhoto instance containing the height, width, and the base64 image
     return ObjectPhoto(height=h, width=w, image=img_str)
